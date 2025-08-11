@@ -1,32 +1,25 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import ru.yandex.practicum.filmorate.model.User;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import java.time.LocalDate;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class UserControllerValidationTest {
 
-    private final MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new UserController()).build();
-
     @Test
-    void shouldSetLoginAsNameIfNameIsBlank() throws Exception {
-        String json = """
-                    {
-                        "email": "user@example.com",
-                        "login": "testuser",
-                        "name": "",
-                        "birthday": "2000-01-01"
-                    }
-                """;
+    void shouldSetLoginAsNameIfNameIsBlank() {
+        UserController controller = new UserController();
+        User user = new User();
+        user.setEmail("user@example.com");
+        user.setLogin("testuser");
+        user.setName("");
+        user.setBirthday(LocalDate.of(2000, 1, 1));
 
-        mockMvc.perform(post("/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("testuser"));
+        User result = controller.addUser(user);
+
+        assertEquals("testuser", result.getName(), "Имя должно быть равно логину, если оно пустое");
     }
 }
