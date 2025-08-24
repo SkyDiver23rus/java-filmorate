@@ -6,6 +6,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -35,7 +36,7 @@ public class FilmController {
     @PutMapping
     public Film updateFilm(@RequestBody Film film) {
         if (filmStorage.getFilmById(film.getId()) == null) {
-            throw new ValidationException("Фильм с таким id не найден.");
+            throw new ResourceNotFoundException("Фильм с таким id не найден.");
         }
         validateFilm(film);
         Film updated = filmStorage.updateFilm(film);
@@ -45,7 +46,11 @@ public class FilmController {
 
     @GetMapping("/{id}")
     public Film getFilm(@PathVariable int id) {
-        return filmStorage.getFilmById(id);
+        Film film = filmStorage.getFilmById(id);
+        if (film == null) {
+            throw new ResourceNotFoundException("Фильм с таким id не найден.");
+        }
+        return film;
     }
 
     @GetMapping
@@ -55,11 +60,18 @@ public class FilmController {
 
     @PutMapping("/{id}/like/{userId}")
     public void addLike(@PathVariable int id, @PathVariable int userId) {
+        // Проверка существования фильма и пользователя (реализуйте в сервисе или тут)
+        if (filmStorage.getFilmById(id) == null) {
+            throw new ResourceNotFoundException("Фильм с таким id не найден.");
+        }
         filmService.addLike(id, userId);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
     public void removeLike(@PathVariable int id, @PathVariable int userId) {
+        if (filmStorage.getFilmById(id) == null) {
+            throw new ResourceNotFoundException("Фильм с таким id не найден.");
+        }
         filmService.removeLike(id, userId);
     }
 

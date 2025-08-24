@@ -7,6 +7,7 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
 
 import java.util.List;
 
@@ -33,7 +34,7 @@ public class UserController {
     @PutMapping
     public User updateUser(@Valid @RequestBody User user) {
         if (userStorage.getUserById(user.getId()) == null) {
-            throw new ValidationException("Пользователь с таким id не найден.");
+            throw new ResourceNotFoundException("Пользователь с таким id не найден.");
         }
         validateUser(user);
         User updated = userStorage.updateUser(user);
@@ -43,7 +44,11 @@ public class UserController {
 
     @GetMapping("/{id}")
     public User getUser(@PathVariable int id) {
-        return userStorage.getUserById(id);
+        User user = userStorage.getUserById(id);
+        if (user == null) {
+            throw new ResourceNotFoundException("Пользователь с таким id не найден.");
+        }
+        return user;
     }
 
     @GetMapping
@@ -53,21 +58,34 @@ public class UserController {
 
     @PutMapping("/{id}/friends/{friendId}")
     public void addFriend(@PathVariable int id, @PathVariable int friendId) {
+        // Проверка существования пользователя (реализуйте в сервисе или тут)
+        if (userStorage.getUserById(id) == null) {
+            throw new ResourceNotFoundException("Пользователь с таким id не найден.");
+        }
         userService.addFriend(id, friendId);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
     public void removeFriend(@PathVariable int id, @PathVariable int friendId) {
+        if (userStorage.getUserById(id) == null) {
+            throw new ResourceNotFoundException("Пользователь с таким id не найден.");
+        }
         userService.removeFriend(id, friendId);
     }
 
     @GetMapping("/{id}/friends")
     public List<User> getFriends(@PathVariable int id) {
+        if (userStorage.getUserById(id) == null) {
+            throw new ResourceNotFoundException("Пользователь с таким id не найден.");
+        }
         return userService.getFriends(id);
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
     public List<User> getCommonFriends(@PathVariable int id, @PathVariable int otherId) {
+        if (userStorage.getUserById(id) == null || userStorage.getUserById(otherId) == null) {
+            throw new ResourceNotFoundException("Пользователь с таким id не найден.");
+        }
         return userService.getCommonFriends(id, otherId);
     }
 
@@ -75,5 +93,6 @@ public class UserController {
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
+
     }
 }
