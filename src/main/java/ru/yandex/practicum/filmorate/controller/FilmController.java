@@ -60,10 +60,10 @@ public class FilmController {
 
     @PutMapping("/{id}/like/{userId}")
     public void addLike(@PathVariable int id, @PathVariable int userId) {
-        // Проверка существования фильма и пользователя (реализуйте в сервисе или тут)
         if (filmStorage.getFilmById(id) == null) {
             throw new ResourceNotFoundException("Фильм с таким id не найден.");
         }
+
         filmService.addLike(id, userId);
     }
 
@@ -72,6 +72,7 @@ public class FilmController {
         if (filmStorage.getFilmById(id) == null) {
             throw new ResourceNotFoundException("Фильм с таким id не найден.");
         }
+
         filmService.removeLike(id, userId);
     }
 
@@ -82,19 +83,15 @@ public class FilmController {
 
     private void validateFilm(Film film) {
         if (film.getName() == null || film.getName().isBlank()) {
-            log.warn("Ошибка валидации: пустое название фильма");
             throw new ValidationException("Название фильма не может быть пустым.");
         }
         if (film.getDescription() != null && film.getDescription().length() > 200) {
-            log.warn("Ошибка валидации: слишком длинное описание");
             throw new ValidationException("Максимальная длина описания — 200 символов.");
         }
         if (film.getReleaseDate() == null || film.getReleaseDate().isBefore(CINEMA_BIRTHDAY)) {
-            log.warn("Ошибка валидации: некорректная дата релиза");
             throw new ValidationException("Дата релиза — не раньше 28 декабря 1895 года.");
         }
         if (film.getDuration() <= 0) {
-            log.warn("Ошибка валидации: отрицательная или нулевая продолжительность");
             throw new ValidationException("Продолжительность фильма должна быть положительным числом.");
         }
     }
