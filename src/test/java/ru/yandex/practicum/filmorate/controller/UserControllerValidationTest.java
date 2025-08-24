@@ -2,6 +2,8 @@ package ru.yandex.practicum.filmorate.controller;
 
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
 import java.time.LocalDate;
 
@@ -11,7 +13,10 @@ class UserControllerValidationTest {
 
     @Test
     void shouldSetLoginAsNameIfNameIsBlank() {
-        UserController controller = new UserController();
+        InMemoryUserStorage storage = new InMemoryUserStorage();
+        UserService service = new UserService(storage);
+        UserController controller = new UserController(service, storage);
+
         User user = new User();
         user.setEmail("user@example.com");
         user.setLogin("testuser");

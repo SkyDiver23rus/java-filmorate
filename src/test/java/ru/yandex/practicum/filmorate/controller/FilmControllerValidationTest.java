@@ -3,6 +3,8 @@ package ru.yandex.practicum.filmorate.controller;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
 
 import java.time.LocalDate;
 
@@ -10,7 +12,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class FilmControllerValidationTest {
 
-    private final FilmController controller = new FilmController();
+    private final FilmController controller = new FilmController(
+            new FilmService(new InMemoryFilmStorage()),
+            new InMemoryFilmStorage()
+    );
 
     @Test
     void validateFilmNameIsEmpty() {
@@ -21,7 +26,6 @@ class FilmControllerValidationTest {
         film.setDuration(10);
 
         ValidationException exception = assertThrows(ValidationException.class, () -> {
-
             controller.addFilm(film);
         });
         assertTrue(exception.getMessage().contains("Название фильма"));
