@@ -6,8 +6,10 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Slf4j
@@ -32,7 +34,8 @@ public class UserController {
 
     @PutMapping
     public User updateUser(@Valid @RequestBody User user) {
-        if (userStorage.getUserById(user.getId()) == null) {
+        User stored = userStorage.getUserById(user.getId());
+        if (stored == null) {
             throw new ResourceNotFoundException("Пользователь с таким id не найден.");
         }
         validateUser(user);
@@ -57,9 +60,11 @@ public class UserController {
 
     @PutMapping("/{id}/friends/{friendId}")
     public void addFriend(@PathVariable int id, @PathVariable int friendId) {
-        // Проверка существования пользователя (реализуйте в сервисе или тут)
         if (userStorage.getUserById(id) == null) {
             throw new ResourceNotFoundException("Пользователь с таким id не найден.");
+        }
+        if (userStorage.getUserById(friendId) == null) {
+            throw new ResourceNotFoundException("Друг с таким id не найден.");
         }
         userService.addFriend(id, friendId);
     }
@@ -68,6 +73,9 @@ public class UserController {
     public void removeFriend(@PathVariable int id, @PathVariable int friendId) {
         if (userStorage.getUserById(id) == null) {
             throw new ResourceNotFoundException("Пользователь с таким id не найден.");
+        }
+        if (userStorage.getUserById(friendId) == null) {
+            throw new ResourceNotFoundException("Друг с таким id не найден.");
         }
         userService.removeFriend(id, friendId);
     }
@@ -89,9 +97,17 @@ public class UserController {
     }
 
     private void validateUser(User user) {
+        if (user.getLogin() == null || user.getLogin().isBlank() || user.getLogin().contains(" ")) {
+            throw new ValidationException("Логин не может быть пустым и содержать пробелы.");
+        }
+        if (user.getEmail() == null || user.getEmail().isBlank() || !user.getEmail().contains("@")) {
+            throw new ValidationException("Email должен быть корректным и содержать символ @.");
+        }
+        if (user.getBirthday() != null && user.getBirthday().isAfter(LocalDate.now())) {
+            throw new ValidationException("Дата рождения не может быть в будущем.");
+        }
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
-
     }
 }

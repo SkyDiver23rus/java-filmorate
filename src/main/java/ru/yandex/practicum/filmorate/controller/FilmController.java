@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
 
@@ -17,12 +18,14 @@ import java.util.List;
 public class FilmController {
     private final FilmService filmService;
     private final FilmStorage filmStorage;
+    private final UserStorage userStorage = null;
 
     private static final LocalDate CINEMA_BIRTHDAY = LocalDate.of(1895, 12, 28);
 
     public FilmController(FilmService filmService, FilmStorage filmStorage) {
         this.filmService = filmService;
         this.filmStorage = filmStorage;
+
     }
 
     @PostMapping
@@ -63,7 +66,9 @@ public class FilmController {
         if (filmStorage.getFilmById(id) == null) {
             throw new ResourceNotFoundException("Фильм с таким id не найден.");
         }
-
+        if (userStorage.getUserById(userId) == null) {
+            throw new ResourceNotFoundException("Пользователь с таким id не найден.");
+        }
         filmService.addLike(id, userId);
     }
 
@@ -72,7 +77,9 @@ public class FilmController {
         if (filmStorage.getFilmById(id) == null) {
             throw new ResourceNotFoundException("Фильм с таким id не найден.");
         }
-
+        if (userStorage.getUserById(userId) == null) {
+            throw new ResourceNotFoundException("Пользователь с таким id не найден.");
+        }
         filmService.removeLike(id, userId);
     }
 
