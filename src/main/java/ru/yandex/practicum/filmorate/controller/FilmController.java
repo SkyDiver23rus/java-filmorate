@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
@@ -11,6 +12,7 @@ import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -18,14 +20,13 @@ import java.util.List;
 public class FilmController {
     private final FilmService filmService;
     private final FilmStorage filmStorage;
-    private final UserStorage userStorage = null;
+    private UserStorage userStorage;
 
     private static final LocalDate CINEMA_BIRTHDAY = LocalDate.of(1895, 12, 28);
 
     public FilmController(FilmService filmService, FilmStorage filmStorage) {
         this.filmService = filmService;
         this.filmStorage = filmStorage;
-
     }
 
     @PostMapping
@@ -62,7 +63,7 @@ public class FilmController {
     }
 
     @PutMapping("/{id}/like/{userId}")
-    public void addLike(@PathVariable int id, @PathVariable int userId) {
+    public ResponseEntity<Void> addLike(@PathVariable int id, @PathVariable int userId) {
         if (filmStorage.getFilmById(id) == null) {
             throw new ResourceNotFoundException("Фильм с таким id не найден.");
         }
@@ -70,10 +71,11 @@ public class FilmController {
             throw new ResourceNotFoundException("Пользователь с таким id не найден.");
         }
         filmService.addLike(id, userId);
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}/like/{userId}")
-    public void removeLike(@PathVariable int id, @PathVariable int userId) {
+    public ResponseEntity<Void> removeLike(@PathVariable int id, @PathVariable int userId) {
         if (filmStorage.getFilmById(id) == null) {
             throw new ResourceNotFoundException("Фильм с таким id не найден.");
         }
@@ -81,11 +83,16 @@ public class FilmController {
             throw new ResourceNotFoundException("Пользователь с таким id не найден.");
         }
         filmService.removeLike(id, userId);
+        return ResponseEntity.ok().build(); // или .noContent().build() если тест требует 204
     }
 
     @GetMapping("/popular")
     public List<Film> getPopularFilms(@RequestParam(defaultValue = "10") int count) {
-        return filmService.getPopularFilms(count);
+        List<Film> allFilms = filmStorage.getAllFilms();
+        return allFilms.stream()
+                .sorted((f1, f2) -> Integer.compare(f2.getLikes().size(), f1.getLikes().size()))
+                .limit(count)
+                .collect(Collectors.toList());
     }
 
     private void validateFilm(Film film) {
