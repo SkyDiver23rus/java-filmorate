@@ -20,13 +20,14 @@ import java.util.stream.Collectors;
 public class FilmController {
     private final FilmService filmService;
     private final FilmStorage filmStorage;
-    private UserStorage userStorage;
+    private final UserStorage userStorage;
 
     private static final LocalDate CINEMA_BIRTHDAY = LocalDate.of(1895, 12, 28);
 
-    public FilmController(FilmService filmService, FilmStorage filmStorage) {
+    public FilmController(FilmService filmService, FilmStorage filmStorage, UserStorage userStorage) {
         this.filmService = filmService;
         this.filmStorage = filmStorage;
+        this.userStorage = userStorage;
     }
 
     @PostMapping
@@ -83,7 +84,7 @@ public class FilmController {
             throw new ResourceNotFoundException("Пользователь с таким id не найден.");
         }
         filmService.removeLike(id, userId);
-        return ResponseEntity.ok().build(); // или .noContent().build() если тест требует 204
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/popular")
