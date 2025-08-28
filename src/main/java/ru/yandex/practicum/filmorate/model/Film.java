@@ -18,17 +18,6 @@ public class Film {
     private LocalDate releaseDate;
     private int duration;
 
+
     private Set<Integer> likes = new HashSet<>();
-
-    public int getLikesCount() {
-        return likes.size();
-    }
-
-    public void addLike(int userId) {
-        likes.add(userId);
-    }
-
-    public void removeLike(int userId) {
-        likes.remove(userId);
-    }
 }
