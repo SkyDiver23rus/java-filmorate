@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -13,12 +14,13 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class FilmControllerValidationTest {
 
-    private final FilmController controller = new FilmController(
-            new FilmService(new InMemoryFilmStorage()),
-            new InMemoryFilmStorage(),
-            new InMemoryUserStorage()
+    private FilmController controller;
 
-    );
+    @BeforeEach
+    void setUp() {
+        FilmService filmService = new FilmService(new InMemoryFilmStorage(), new InMemoryUserStorage());
+        controller = new FilmController(filmService);
+    }
 
     @Test
     void validateFilmNameIsEmpty() {
