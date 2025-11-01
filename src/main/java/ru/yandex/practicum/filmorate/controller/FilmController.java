@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -19,23 +20,25 @@ public class FilmController {
     }
 
     @PostMapping
-    public Film addFilm(@RequestBody Film film) {
-        return filmService.addFilm(film);
+    public ResponseEntity<Film> addFilm(@RequestBody Film film) {
+        Film created = filmService.addFilm(film);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PutMapping
-    public Film updateFilm(@RequestBody Film film) {
-        return filmService.updateFilm(film);
+    public ResponseEntity<Film> updateFilm(@RequestBody Film film) {
+        Film updated = filmService.updateFilm(film);
+        return ResponseEntity.ok(updated);
     }
 
     @GetMapping("/{id}")
-    public Film getFilm(@PathVariable int id) {
-        return filmService.getFilm(id);
+    public ResponseEntity<Film> getFilm(@PathVariable int id) {
+        return ResponseEntity.ok(filmService.getFilm(id));
     }
 
     @GetMapping
-    public List<Film> getAllFilms() {
-        return filmService.getAllFilms();
+    public ResponseEntity<List<Film>> getAllFilms() {
+        return ResponseEntity.ok(filmService.getAllFilms());
     }
 
     @PutMapping("/{id}/like/{userId}")
@@ -51,7 +54,7 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public List<Film> getPopularFilms(@RequestParam(defaultValue = "10") int count) {
-        return filmService.getPopularFilms(count);
+    public ResponseEntity<List<Film>> getPopularFilms(@RequestParam(defaultValue = "10") int count) {
+        return ResponseEntity.ok(filmService.getPopularFilms(count));
     }
 }
