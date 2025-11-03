@@ -30,16 +30,6 @@ public class FilmService {
     public Film addFilm(Film film) {
         validateFilm(film);
 
-        // ПРОВЕРКА MPA
-        if (film.getMpa() != null && film.getMpa().getId() > 0) {
-
-        } else {
-            Mpa defaultMpa = new Mpa();
-            defaultMpa.setId(1);
-            defaultMpa.setName("G");
-            film.setMpa(defaultMpa);
-        }
-
         return filmStorage.addFilm(film);
     }
 
@@ -49,16 +39,6 @@ public class FilmService {
             throw new NotFoundException("Фильм с id " + film.getId() + " не найден.");
         }
         validateFilm(film);
-
-        // ПРОВЕРКА MPA
-        if (film.getMpa() != null && film.getMpa().getId() > 0) {
-
-        } else {
-            Mpa defaultMpa = new Mpa();
-            defaultMpa.setId(1);
-            defaultMpa.setName("G");
-            film.setMpa(defaultMpa);
-        }
 
         return filmStorage.updateFilm(film);
     }
