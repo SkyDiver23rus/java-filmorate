@@ -27,27 +27,38 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film addFilm(Film film) {
-        String sql = "INSERT INTO films (name, description, release_date, duration, mpa_rating_id) VALUES (?, ?, ?, ?, ?)";
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbcTemplate.update(connection -> {
-            PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            stmt.setString(1, film.getName());
-            stmt.setString(2, film.getDescription());
-            stmt.setDate(3, Date.valueOf(film.getReleaseDate()));
-            stmt.setInt(4, film.getDuration());
-            stmt.setInt(5, film.getMpa() != null ? film.getMpa().getId() : 1);
-            return stmt;
-        }, keyHolder);
+        try {
+            String sql = "INSERT INTO films (name, description, release_date, duration, mpa_rating_id) VALUES (?, ?, ?, ?, ?)";
 
-        Integer generatedId = keyHolder.getKey() != null ? keyHolder.getKey().intValue() : null;
-        if (generatedId == null) {
-            throw new RuntimeException("Failed to generate film ID");
+            KeyHolder keyHolder = new GeneratedKeyHolder();
+
+            jdbcTemplate.update(connection -> {
+                PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                stmt.setString(1, film.getName());
+                stmt.setString(2, film.getDescription());
+                stmt.setDate(3, Date.valueOf(film.getReleaseDate()));
+                stmt.setInt(4, film.getDuration());
+                // ПРОВЕРКА MPA - ЕСЛИ ID НЕ СУЩЕСТВУЕТ, ИСПОЛЬЗУЕМ 1 (G)
+                int mpaId = (film.getMpa() != null && film.getMpa().getId() > 0) ? film.getMpa().getId() : 1;
+                stmt.setInt(5, mpaId);
+                return stmt;
+            }, keyHolder);
+
+            Integer generatedId = keyHolder.getKey() != null ? keyHolder.getKey().intValue() : null;
+            if (generatedId == null) {
+                throw new RuntimeException("Failed to generate film ID");
+            }
+            film.setId(generatedId);
+
+            // Сохраняем жанры
+            if (film.getGenres() != null && !film.getGenres().isEmpty()) {
+                updateFilmGenres(film);
+            }
+
+            return getFilmById(film.getId());
+        } catch (DataAccessException e) {
+            throw new RuntimeException("Database error while adding film", e);
         }
-        film.setId(generatedId);
-
-        updateFilmGenres(film);
-
-        return getFilmById(film.getId());
     }
 
     @Override
