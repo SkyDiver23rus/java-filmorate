@@ -30,7 +30,10 @@ public class FilmService {
     public Film addFilm(Film film) {
         validateFilm(film);
 
-        if (film.getMpa() == null) {
+        // ПРОВЕРКА MPA
+        if (film.getMpa() != null && film.getMpa().getId() > 0) {
+
+        } else {
             Mpa defaultMpa = new Mpa();
             defaultMpa.setId(1);
             defaultMpa.setName("G");
@@ -47,7 +50,10 @@ public class FilmService {
         }
         validateFilm(film);
 
-        if (film.getMpa() == null) {
+        // ПРОВЕРКА MPA
+        if (film.getMpa() != null && film.getMpa().getId() > 0) {
+
+        } else {
             Mpa defaultMpa = new Mpa();
             defaultMpa.setId(1);
             defaultMpa.setName("G");
