@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class InMemoryUserStorage implements UserStorage {
@@ -52,5 +53,30 @@ public class InMemoryUserStorage implements UserStorage {
         if (user != null) {
             user.getFriends().remove(friendId);
         }
+    }
+
+    @Override
+    public Set<Integer> getUserFriends(int userId) {
+        return Set.of();
+    }
+
+    @Override
+    public List<User> getCommonFriends(int userId1, int userId2) {
+        User user1 = users.get(userId1);
+        User user2 = users.get(userId2);
+
+        if (user1 == null || user2 == null) {
+            return new ArrayList<>();
+        }
+
+        // Находим общих друзей
+        Set<Integer> commonFriendIds = new HashSet<>(user1.getFriends());
+        commonFriendIds.retainAll(user2.getFriends());
+
+        // Преобразуем ID друзей в объекты User
+        return commonFriendIds.stream()
+                .map(users::get)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 }

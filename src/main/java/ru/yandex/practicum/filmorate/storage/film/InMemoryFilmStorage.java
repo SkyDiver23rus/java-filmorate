@@ -6,6 +6,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @Primary
@@ -93,5 +94,14 @@ public class InMemoryFilmStorage implements FilmStorage {
         if (film != null) {
             film.getLikes().remove(userId);
         }
+    }
+
+    @Override
+    public List<Film> getPopularFilms(int count) {
+        // Сортируем фильмы по количеству лайков (по убыванию) и берем первые count
+        return films.values().stream()
+                .sorted((f1, f2) -> Integer.compare(f2.getLikes().size(), f1.getLikes().size()))
+                .limit(count)
+                .collect(Collectors.toList());
     }
 }

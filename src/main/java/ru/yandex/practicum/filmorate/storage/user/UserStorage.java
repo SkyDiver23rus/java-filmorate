@@ -4,6 +4,7 @@ import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface UserStorage {
     User addUser(User user);
@@ -12,7 +13,6 @@ public interface UserStorage {
 
     User getUserById(int id);
 
-    // Добавьте этот метод для совместимости с тестами
     Optional<User> findUserById(int id);
 
     List<User> getAllUsers();
@@ -20,4 +20,8 @@ public interface UserStorage {
     void addFriend(int userId, int friendId);
 
     void removeFriend(int userId, int friendId);
+
+    Set<Integer> getUserFriends(int userId);
+
+    List<User> getCommonFriends(int userId1, int userId2);
 }

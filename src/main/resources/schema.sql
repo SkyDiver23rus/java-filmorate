@@ -43,9 +43,7 @@ CREATE TABLE IF NOT EXISTS film_likes (
 );
 
 CREATE TABLE IF NOT EXISTS friendships (
-    user_id INTEGER,
-    friend_id INTEGER,
-    PRIMARY KEY (user_id, friend_id),
-    CONSTRAINT fk_friendships_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    CONSTRAINT fk_friendships_friend FOREIGN KEY (friend_id) REFERENCES users(id) ON DELETE CASCADE
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    friend_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    PRIMARY KEY (user_id, friend_id)
 );

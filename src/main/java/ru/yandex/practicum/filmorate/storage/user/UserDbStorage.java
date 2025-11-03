@@ -24,7 +24,6 @@ public class UserDbStorage implements UserStorage {
     @Override
     public User addUser(User user) {
         String sql = "INSERT INTO users (email, login, name, birthday) VALUES (?, ?, ?, ?)";
-
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
@@ -82,7 +81,7 @@ public class UserDbStorage implements UserStorage {
         try {
             jdbcTemplate.update(sql, userId, friendId);
         } catch (Exception e) {
-            // Дружба уже существует, игнорируем
+
         }
     }
 
@@ -99,16 +98,35 @@ public class UserDbStorage implements UserStorage {
         user.setLogin(rs.getString("login"));
         user.setName(rs.getString("name"));
         user.setBirthday(rs.getDate("birthday").toLocalDate());
-
-        // Загружаем друзей
-        user.setFriends(getUserFriends(user.getId()));
-
+        user.setFriends(new HashSet<>());
         return user;
     }
 
-    private Set<Integer> getUserFriends(int userId) {
+    @Override
+    public Set<Integer> getUserFriends(int userId) {
         String sql = "SELECT friend_id FROM friendships WHERE user_id = ?";
         List<Integer> friends = jdbcTemplate.query(sql, (rs, rowNum) -> rs.getInt("friend_id"), userId);
         return new HashSet<>(friends);
+    }
+
+    @Override
+    public List<User> getCommonFriends(int userId1, int userId2) {
+        // Получаем id общих друзей через
+        String sql = "SELECT f1.friend_id " +
+                "FROM friendships f1 " +
+                "INNER JOIN friendships f2 ON f1.friend_id = f2.friend_id " +
+                "WHERE f1.user_id = ? AND f2.user_id = ?";
+        List<Integer> commonFriendIds = jdbcTemplate.query(sql,
+                (rs, rowNum) -> rs.getInt("friend_id"), userId1, userId2);
+
+        if (commonFriendIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // Групповая загрузка юхеров
+        String inSql = String.join(",", Collections.nCopies(commonFriendIds.size(), "?"));
+        String userSql = "SELECT * FROM users WHERE id IN (" + inSql + ")";
+        List<User> users = jdbcTemplate.query(userSql, this::mapRowToUser, commonFriendIds.toArray());
+        return users;
     }
 }

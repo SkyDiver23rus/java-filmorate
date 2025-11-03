@@ -5,9 +5,8 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.storage.DAO.GenreDbStorage;
-import ru.yandex.practicum.filmorate.storage.DAO.MpaDbStorage;
+import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -20,35 +19,22 @@ import java.util.stream.Collectors;
 public class FilmService {
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
-    private final GenreDbStorage genreDbStorage;
-    private final MpaDbStorage mpaDbStorage;
     private static final LocalDate CINEMA_BIRTHDAY = LocalDate.of(1895, 12, 28);
 
     public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage,
-                       @Qualifier("userDbStorage") UserStorage userStorage,
-                       GenreDbStorage genreDbStorage,
-                       MpaDbStorage mpaDbStorage) {
+                       @Qualifier("userDbStorage") UserStorage userStorage) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
-        this.genreDbStorage = genreDbStorage;
-        this.mpaDbStorage = mpaDbStorage;
     }
 
     public Film addFilm(Film film) {
         validateFilm(film);
 
-        // Проверяем MPA
-        if (film.getMpa() == null || !mpaDbStorage.getMpaById(film.getMpa().getId()).isPresent()) {
-            throw new NotFoundException("MPA с id " + (film.getMpa() == null ? null : film.getMpa().getId()) + " не найден.");
-        }
-
-        // Проверяем жанры
-        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
-            for (Genre genre : film.getGenres()) {
-                if (!genreDbStorage.getGenreById(genre.getId()).isPresent()) {
-                    throw new NotFoundException("Жанр с id " + genre.getId() + " не найден.");
-                }
-            }
+        if (film.getMpa() == null) {
+            Mpa defaultMpa = new Mpa();
+            defaultMpa.setId(1);
+            defaultMpa.setName("G");
+            film.setMpa(defaultMpa);
         }
 
         return filmStorage.addFilm(film);
@@ -61,18 +47,11 @@ public class FilmService {
         }
         validateFilm(film);
 
-        // Проверяем MPA
-        if (film.getMpa() == null || !mpaDbStorage.getMpaById(film.getMpa().getId()).isPresent()) {
-            throw new NotFoundException("MPA с id " + (film.getMpa() == null ? null : film.getMpa().getId()) + " не найден.");
-        }
-
-        // Проверяем жанры
-        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
-            for (Genre genre : film.getGenres()) {
-                if (!genreDbStorage.getGenreById(genre.getId()).isPresent()) {
-                    throw new NotFoundException("Жанр с id " + genre.getId() + " не найден.");
-                }
-            }
+        if (film.getMpa() == null) {
+            Mpa defaultMpa = new Mpa();
+            defaultMpa.setId(1);
+            defaultMpa.setName("G");
+            film.setMpa(defaultMpa);
         }
 
         return filmStorage.updateFilm(film);
@@ -113,11 +92,15 @@ public class FilmService {
     }
 
     public List<Film> getPopularFilms(int count) {
-        List<Film> films = filmStorage.getAllFilms();
-        return films.stream()
-                .sorted(Comparator.comparingInt((Film f) -> f.getLikes().size()).reversed())
-                .limit(count)
-                .collect(Collectors.toList());
+        if (filmStorage instanceof FilmDbStorage) {
+            return ((FilmDbStorage) filmStorage).getPopularFilms(count);
+        } else {
+
+            return filmStorage.getAllFilms().stream()
+                    .sorted(Comparator.comparingInt((Film f) -> f.getLikes().size()).reversed())
+                    .limit(count)
+                    .collect(Collectors.toList());
+        }
     }
 
     private void validateFilm(Film film) {

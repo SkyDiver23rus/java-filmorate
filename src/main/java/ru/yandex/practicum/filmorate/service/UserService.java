@@ -9,7 +9,6 @@ import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,6 +39,7 @@ public class UserService {
     }
 
     public List<User> getAllUsers() {
+
         return userStorage.getAllUsers();
     }
 
@@ -56,25 +56,27 @@ public class UserService {
     }
 
     public List<User> getFriends(int id) {
-        User user = validateUserExists(id);
+        User user = getUserWithFriends(id);
         return user.getFriends().stream()
                 .map(userStorage::getUserById)
-                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
     public List<User> getCommonFriends(int id, int otherId) {
-        User user1 = validateUserExists(id);
-        User user2 = validateUserExists(otherId);
-
-        return user1.getFriends().stream()
-                .filter(user2.getFriends()::contains)
-                .map(userStorage::getUserById)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+        validateUserExists(id);
+        validateUserExists(otherId);
+        return userStorage.getCommonFriends(id, otherId);
     }
 
-    //  метод для проверки существования пользователя
+
+    private User getUserWithFriends(int id) {
+        User user = userStorage.getUserById(id);
+        if (user == null) {
+            throw new NotFoundException("Пользователь с id " + id + " не найден.");
+        }
+        return user;
+    }
+
     private User validateUserExists(int userId) {
         User user = userStorage.getUserById(userId);
         if (user == null) {
