@@ -153,5 +153,5 @@ public class UserDbStorage implements UserStorage {
         });
 
         return allFriends;
-    }/**/
+    }
 }
