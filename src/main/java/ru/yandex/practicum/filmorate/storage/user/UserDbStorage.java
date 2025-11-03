@@ -81,7 +81,7 @@ public class UserDbStorage implements UserStorage {
         try {
             jdbcTemplate.update(sql, userId, friendId);
         } catch (Exception e) {
-
+            // игнорируем
         }
     }
 
