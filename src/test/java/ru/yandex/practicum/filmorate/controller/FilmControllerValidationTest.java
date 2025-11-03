@@ -14,16 +14,17 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class FilmControllerValidationTest {
 
-    private FilmController controller;
+    private FilmService filmService;
 
     @BeforeEach
     void setUp() {
-        // Конструктор FilmService ожидает только FilmStorage и UserStorage!
-        FilmService filmService = new FilmService(
+       
+        filmService = new FilmService(
                 new InMemoryFilmStorage(),
-                new InMemoryUserStorage()
+                new InMemoryUserStorage(),
+                null,
+                null
         );
-        controller = new FilmController(filmService);
     }
 
     @Test
@@ -35,7 +36,7 @@ class FilmControllerValidationTest {
         film.setDuration(10);
 
         ValidationException exception = assertThrows(ValidationException.class, () -> {
-            controller.addFilm(film);
+            filmService.validateFilm(film);
         });
         assertTrue(exception.getMessage().contains("Название фильма"));
     }
@@ -48,7 +49,7 @@ class FilmControllerValidationTest {
         film.setReleaseDate(LocalDate.of(2000, 1, 1));
         film.setDuration(10);
 
-        ValidationException exception = assertThrows(ValidationException.class, () -> controller.addFilm(film));
+        ValidationException exception = assertThrows(ValidationException.class, () -> filmService.validateFilm(film));
         assertTrue(exception.getMessage().contains("Максимальная длина описания"));
     }
 
@@ -60,7 +61,7 @@ class FilmControllerValidationTest {
         film.setReleaseDate(LocalDate.of(1895, 12, 27));
         film.setDuration(10);
 
-        ValidationException exception = assertThrows(ValidationException.class, () -> controller.addFilm(film));
+        ValidationException exception = assertThrows(ValidationException.class, () -> filmService.validateFilm(film));
         assertTrue(exception.getMessage().contains("Дата релиза"));
     }
 
@@ -72,7 +73,7 @@ class FilmControllerValidationTest {
         film.setReleaseDate(LocalDate.of(2000, 1, 1));
         film.setDuration(0);
 
-        ValidationException exception = assertThrows(ValidationException.class, () -> controller.addFilm(film));
+        ValidationException exception = assertThrows(ValidationException.class, () -> filmService.validateFilm(film));
         assertTrue(exception.getMessage().contains("Продолжительность"));
     }
 
@@ -84,6 +85,22 @@ class FilmControllerValidationTest {
         film.setReleaseDate(LocalDate.of(2000, 1, 1));
         film.setDuration(10);
 
-        assertDoesNotThrow(() -> controller.addFilm(film));
+        assertDoesNotThrow(() -> filmService.validateFilm(film));
+    }
+
+    @Test
+    void addFilmWithValidData() {
+        Film film = new Film();
+        film.setName("Valid Film");
+        film.setDescription("Valid description");
+        film.setReleaseDate(LocalDate.of(2000, 1, 1));
+        film.setDuration(120);
+
+
+        ru.yandex.practicum.filmorate.model.Mpa mpa = new ru.yandex.practicum.filmorate.model.Mpa();
+        mpa.setId(1);
+        film.setMpa(mpa);
+
+        assertDoesNotThrow(() -> filmService.addFilm(film));
     }
 }
