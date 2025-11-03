@@ -24,4 +24,5 @@ public interface UserStorage {
     Set<Integer> getUserFriends(int userId);
 
     List<User> getCommonFriends(int userId1, int userId2);
+
 }

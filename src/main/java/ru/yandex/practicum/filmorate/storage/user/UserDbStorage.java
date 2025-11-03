@@ -58,7 +58,12 @@ public class UserDbStorage implements UserStorage {
         String sql = "SELECT * FROM users WHERE id = ?";
 
         List<User> users = jdbcTemplate.query(sql, this::mapRowToUser, id);
-        return users.isEmpty() ? null : users.get(0);
+        if (users.isEmpty()) {
+            return null;
+        }
+        User user = users.get(0);
+        user.setFriends(getUserFriends(user.getId()));
+        return user;
     }
 
     @Override
@@ -72,7 +77,13 @@ public class UserDbStorage implements UserStorage {
     @Override
     public List<User> getAllUsers() {
         String sql = "SELECT * FROM users";
-        return jdbcTemplate.query(sql, this::mapRowToUser);
+        List<User> users = jdbcTemplate.query(sql, this::mapRowToUser);
+        Map<Integer, Set<Integer>> allFriends = getAllFriends();
+        for (User user : users) {
+            user.setFriends(allFriends.getOrDefault(user.getId(), new HashSet<>()));
+        }
+
+        return users;
     }
 
     @Override
@@ -129,4 +140,18 @@ public class UserDbStorage implements UserStorage {
         List<User> users = jdbcTemplate.query(userSql, this::mapRowToUser, commonFriendIds.toArray());
         return users;
     }
+
+    private Map<Integer, Set<Integer>> getAllFriends() {
+        String sql = "SELECT user_id, friend_id FROM friendships";
+        Map<Integer, Set<Integer>> allFriends = new HashMap<>();
+
+        jdbcTemplate.query(sql, (rs, rowNum) -> {
+            int userId = rs.getInt("user_id");
+            int friendId = rs.getInt("friend_id");
+            allFriends.computeIfAbsent(userId, k -> new HashSet<>()).add(friendId);
+            return null;
+        });
+
+        return allFriends;
+    }/**/
 }
