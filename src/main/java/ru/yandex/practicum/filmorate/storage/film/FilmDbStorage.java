@@ -145,7 +145,7 @@ public class FilmDbStorage implements FilmStorage {
             String sql = "INSERT INTO film_likes (film_id, user_id) VALUES (?, ?)";
             jdbcTemplate.update(sql, filmId, userId);
         } catch (DataAccessException e) {
-
+//игнорим
         }
     }
 
@@ -155,7 +155,7 @@ public class FilmDbStorage implements FilmStorage {
             String sql = "DELETE FROM film_likes WHERE film_id = ? AND user_id = ?";
             jdbcTemplate.update(sql, filmId, userId);
         } catch (DataAccessException e) {
-
+//игнорим
         }
     }
 
