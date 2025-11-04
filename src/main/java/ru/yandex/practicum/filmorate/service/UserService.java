@@ -78,7 +78,7 @@ public class UserService {
         return user;
     }
 
-    private User validateUserExists(int userId) {
+    public User validateUserExists(int userId) {
         User user = userStorage.getUserById(userId);
         if (user == null) {
             throw new NotFoundException("Пользователь с id " + userId + " не найден.");
@@ -86,7 +86,7 @@ public class UserService {
         return user;
     }
 
-    private void validateUser(User user) {
+    public void validateUser(User user) {
         if (user.getLogin() == null || user.getLogin().isBlank()) {
             throw new ValidationException("Логин не может быть пустым.");
         }
