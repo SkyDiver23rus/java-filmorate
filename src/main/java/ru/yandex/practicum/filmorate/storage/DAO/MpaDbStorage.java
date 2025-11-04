@@ -25,7 +25,8 @@ public class MpaDbStorage {
         String sql = "SELECT * FROM mpa_ratings ORDER BY id";
         return jdbcTemplate.query(sql, this::mapRowToMpa);
     }
-//исправлено
+
+    //исправлено
     public Optional<Mpa> getMpaById(int id) {
         String sql = "SELECT * FROM mpa_ratings WHERE id = ?";
         List<Mpa> result = jdbcTemplate.query(sql, this::mapRowToMpa, id);
