@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 public class GenreDbStorage {
 
     private final JdbcTemplate jdbcTemplate;
-    private Map<Integer, Genre> genreCache;
 
     @Autowired
     public GenreDbStorage(JdbcTemplate jdbcTemplate) {
@@ -26,26 +25,9 @@ public class GenreDbStorage {
         return jdbcTemplate.query(sql, this::mapRowToGenre);
     }
 
-    public Map<Integer, Genre> getAllGenresMap() {
-        if (genreCache == null) {
-            genreCache = getAllGenres().stream()
-                    .collect(Collectors.toMap(Genre::getId, genre -> genre));
-        }
-        return genreCache;
-    }
-
     public Optional<Genre> getGenreById(int id) {
-        if (genreCache != null && genreCache.containsKey(id)) {
-            return Optional.of(genreCache.get(id));
-        }
-
         String sql = "SELECT * FROM genres WHERE id = ?";
         List<Genre> result = jdbcTemplate.query(sql, this::mapRowToGenre, id);
-
-        if (!result.isEmpty() && genreCache != null) {
-            genreCache.put(id, result.get(0));
-        }
-
         return result.stream().findFirst();
     }
 
@@ -53,11 +35,10 @@ public class GenreDbStorage {
         if (genreIds == null || genreIds.isEmpty()) {
             return;
         }
-
-        Map<Integer, Genre> allGenres = getAllGenresMap();
-
+        List<Genre> foundGenres = getGenresByIds(genreIds);
+        Set<Integer> foundIds = foundGenres.stream().map(Genre::getId).collect(Collectors.toSet());
         Set<Integer> nonExistentIds = genreIds.stream()
-                .filter(id -> !allGenres.containsKey(id))
+                .filter(id -> !foundIds.contains(id))
                 .collect(Collectors.toSet());
 
         if (!nonExistentIds.isEmpty()) {
@@ -69,18 +50,15 @@ public class GenreDbStorage {
         if (genreIds == null || genreIds.isEmpty()) {
             return List.of();
         }
-
-        Map<Integer, Genre> allGenres = getAllGenresMap();
-        return genreIds.stream()
-                .filter(allGenres::containsKey)
-                .map(allGenres::get)
-                .sorted(Comparator.comparingInt(Genre::getId))
-                .collect(Collectors.toList());
+        String inSql = genreIds.stream().map(id -> "?").collect(Collectors.joining(","));
+        String sql = "SELECT * FROM genres WHERE id IN (" + inSql + ") ORDER BY id";
+        return jdbcTemplate.query(sql, genreIds.toArray(), this::mapRowToGenre);
     }
 
-    public void refreshCache() {
-        genreCache = null;
-        getAllGenresMap();
+    public boolean existsById(int id) {
+        String sql = "SELECT COUNT(*) FROM genres WHERE id = ?";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, id);
+        return count != null && count > 0;
     }
 
     private Genre mapRowToGenre(ResultSet rs, int rowNum) throws SQLException {
