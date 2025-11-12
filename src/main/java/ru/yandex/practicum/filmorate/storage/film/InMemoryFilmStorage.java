@@ -103,4 +103,9 @@ public class InMemoryFilmStorage implements FilmStorage {
                 .limit(count)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<Film> getFilmsByFilter(String query, List<String> by) {
+        throw new RuntimeException("Not Implemented");
+    }
 }

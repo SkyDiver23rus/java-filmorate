@@ -57,4 +57,9 @@ public class FilmController {
     public ResponseEntity<List<Film>> getPopularFilms(@RequestParam(defaultValue = "10") int count) {
         return ResponseEntity.ok(filmService.getPopularFilms(count));
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<Film>> getFilmsByFilter(@RequestParam(required = false) String query, @RequestParam(required = false) List<String> by) {
+        return ResponseEntity.ok(filmService.getFilmsByFilter(query, by));
+    }
 }

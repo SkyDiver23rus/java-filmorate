@@ -141,4 +141,8 @@ public class FilmService {
             throw new ValidationException("Продолжительность фильма должна быть положительным числом.");
         }
     }
+
+    public List<Film> getFilmsByFilter(String query, List<String> by) {
+        return filmStorage.getFilmsByFilter(query, by);
+    }
 }
