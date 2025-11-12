@@ -90,11 +90,17 @@ public class FilmService {
         filmStorage.removeLike(filmId, userId);
     }
 
-    public List<Film> getPopularFilms(int count) {
+    public List<Film> getPopularFilms(int count, Integer genreId, Integer year) {
         if (count <= 0) {
             throw new ValidationException("Количество фильмов должно быть положительным числом.");
         }
-        return filmStorage.getPopularFilms(count);
+        if (genreId != null) {
+            validateGenre(genreId);
+        }
+        if (year != null && year <= 0) {
+            throw new ValidationException("Год должен быть положительным числом");
+        }
+        return filmStorage.getPopularFilms(count, genreId, year);
     }
 
     private void validateMpa(Film film) {
@@ -139,6 +145,12 @@ public class FilmService {
         }
         if (film.getDuration() <= 0) {
             throw new ValidationException("Продолжительность фильма должна быть положительным числом.");
+        }
+    }
+
+    private void validateGenre(int genreId) {
+        if (genreDbStorage.getGenreById(genreId).isEmpty()) {
+            throw new NotFoundException("Жанр с id " + genreId + " не найден.");
         }
     }
 }

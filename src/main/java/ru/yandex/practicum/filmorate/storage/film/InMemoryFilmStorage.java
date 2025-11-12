@@ -96,7 +96,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getPopularFilms(int count) {
+    public List<Film> getPopularFilms(int count, Integer genreId, Integer year) {
         // Сортируем фильмы по количеству лайков (по убыванию) и берем первые count
         return films.values().stream()
                 .sorted((f1, f2) -> Integer.compare(f2.getLikes().size(), f1.getLikes().size()))
