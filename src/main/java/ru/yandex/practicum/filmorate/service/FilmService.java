@@ -141,4 +141,13 @@ public class FilmService {
             throw new ValidationException("Продолжительность фильма должна быть положительным числом.");
         }
     }
+
+    //по задаче рекомендации
+    public List<Film> getRecommendedFilms(int userId) {
+        // Проверяем пользователя
+        if (userStorage.getUserById(userId) == null) {
+            throw new NotFoundException("Пользователь с id " + userId + " не найден.");
+        }
+        return filmStorage.getRecommendedFilms(userId);
+    }
 }
