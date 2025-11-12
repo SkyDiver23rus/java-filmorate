@@ -380,6 +380,7 @@ public class FilmDbStorage implements FilmStorage {
             for (Film film : films) {
                 film.setGenres(genresByFilmId.getOrDefault(film.getId(), new ArrayList<>()));
                 film.setLikes(new HashSet<>(likesByFilmId.getOrDefault(film.getId(), Collections.emptyList())));
+                film.setDirectors(loadDirectors(film.getId()));
             }
             return films;
         } catch (DataAccessException e) {
