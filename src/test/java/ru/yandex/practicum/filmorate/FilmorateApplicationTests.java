@@ -10,6 +10,8 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.service.DirectorService;
+import ru.yandex.practicum.filmorate.storage.DAO.DirectorDbStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.DAO.GenreDbStorage;
@@ -30,7 +32,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
         UserDbStorage.class,
         FilmDbStorage.class,
         GenreDbStorage.class,
-        MpaDbStorage.class
+        MpaDbStorage.class,
+        DirectorDbStorage.class,
+        DirectorService.class
 })
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class FilmorateApplicationTests {
@@ -46,6 +50,9 @@ public class FilmorateApplicationTests {
 
     @Autowired
     private MpaDbStorage mpaStorage;
+
+    @Autowired
+    private DirectorService directorService;
 
     // UserDbStorage
     @Test
@@ -102,7 +109,7 @@ public class FilmorateApplicationTests {
     //  тесты для методов валидации
     @Test
     public void testValidateFilm_valid() {
-        FilmService filmService = new FilmService(filmStorage, userStorage, mpaStorage, genreStorage);
+        FilmService filmService = new FilmService(filmStorage, userStorage, mpaStorage, genreStorage, directorService);
 
         Film validFilm = new Film();
         validFilm.setName("Titanic");
@@ -120,7 +127,7 @@ public class FilmorateApplicationTests {
 
     @Test
     public void testValidateFilm_invalid() {
-        FilmService filmService = new FilmService(filmStorage, userStorage, mpaStorage, genreStorage);
+        FilmService filmService = new FilmService(filmStorage, userStorage, mpaStorage, genreStorage, directorService);
 
         Film invalidFilm = new Film();
         invalidFilm.setName(""); // Пустое имя

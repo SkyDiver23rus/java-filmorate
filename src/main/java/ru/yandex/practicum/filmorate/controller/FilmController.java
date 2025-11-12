@@ -57,4 +57,10 @@ public class FilmController {
     public ResponseEntity<List<Film>> getPopularFilms(@RequestParam(defaultValue = "10") int count) {
         return ResponseEntity.ok(filmService.getPopularFilms(count));
     }
+
+    // получение всех фильмов режиссера
+    @GetMapping("/director/{directorId}")
+    public ResponseEntity<List<Film>> filmByDirector(@PathVariable int directorId, @RequestParam String sortBy) {
+        return ResponseEntity.ok(filmService.getFilmsByDirectorSorted(directorId, sortBy));
+    }
 }
