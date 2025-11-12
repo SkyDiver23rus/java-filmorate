@@ -19,7 +19,7 @@ public class DirectorService {
         return directorDbStorage.create(director);
     }
 
-    public Director update (Director director) {
+    public Director update(Director director) {
         validateName(director.getName());
         ensureExists(director.getId());
         return directorDbStorage.update(director);
