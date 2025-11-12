@@ -343,7 +343,7 @@ public class FilmDbStorage implements FilmStorage {
             return List.of();
         }
     }
-    
+
     // сортировка фильмов одного режиссера по лайкам или году
     public List<Film> getFilmsByDirectorSorted(int directorId, String sortBy) {
         String base = "SELECT f.*, m.name as mpa_name " +
