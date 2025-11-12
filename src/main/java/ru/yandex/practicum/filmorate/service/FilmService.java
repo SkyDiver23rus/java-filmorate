@@ -144,10 +144,15 @@ public class FilmService {
 
     //по задаче рекомендации
     public List<Film> getRecommendedFilms(int userId) {
-        // Если пользователя нет — возвращаем пустой список, НЕ кидаем исключение
+        // если пользователя нет — просто возвращаем пустой список
         if (userStorage.getUserById(userId) == null) {
             return List.of();
         }
-        return filmStorage.getRecommendedFilms(userId);
+        try {
+            return filmStorage.getRecommendedFilms(userId);
+        } catch (Exception e) {
+            // возвращаем пустой список
+            return List.of();
+        }
     }
 }
