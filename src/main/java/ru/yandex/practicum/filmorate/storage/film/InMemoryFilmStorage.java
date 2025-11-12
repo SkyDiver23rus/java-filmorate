@@ -103,7 +103,9 @@ public class InMemoryFilmStorage implements FilmStorage {
                 .limit(count)
                 .collect(Collectors.toList());
     }
-// по задаче рекомендации
+
+
+    // по задаче рекомендации
     @Override
     public List<Film> getRecommendedFilms(int userId) {
         // Карта: пользователь -> список лайкнутых фильмов
