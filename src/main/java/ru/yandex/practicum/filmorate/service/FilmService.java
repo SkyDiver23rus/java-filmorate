@@ -144,9 +144,9 @@ public class FilmService {
 
     //по задаче рекомендации
     public List<Film> getRecommendedFilms(int userId) {
-        // Проверяем пользователя
+        // Если пользователя нет — возвращаем пустой список, НЕ кидаем исключение
         if (userStorage.getUserById(userId) == null) {
-            throw new NotFoundException("Пользователь с id " + userId + " не найден.");
+            return List.of();
         }
         return filmStorage.getRecommendedFilms(userId);
     }
