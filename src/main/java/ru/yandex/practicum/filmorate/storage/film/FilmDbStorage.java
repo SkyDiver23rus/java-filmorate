@@ -163,12 +163,12 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public List<Film> getPopularFilms(int count) {
         try {
-            String sql = "SELECT f.*, m.name as mpa_name, "
+            String sql = "SELECT f.id, f.name, f.description, f.release_date, f.duration, f.mpa_rating_id, m.name as mpa_name, "
                     + "COUNT(fl.user_id) as likes_count "
                     + "FROM films f "
                     + "LEFT JOIN mpa_ratings m ON f.mpa_rating_id = m.id "
                     + "LEFT JOIN film_likes fl ON f.id = fl.film_id "
-                    + "GROUP BY f.id, m.name "
+                    + "GROUP BY f.id, f.name, f.description, f.release_date, f.duration, f.mpa_rating_id, m.name "
                     + "ORDER BY likes_count DESC "
                     + "LIMIT ?";
 
@@ -269,7 +269,7 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public List<Film> getRecommendedFilms(int userId) {
         try {
-            //Проверяем, есть ли вообще лайки у пользователя
+            // Проверяем, есть ли вообще лайки у пользователя
             String userHasLikesSql = "SELECT COUNT(*) FROM film_likes WHERE user_id = ?";
             Integer userLikesCount = jdbcTemplate.queryForObject(userHasLikesSql, Integer.class, userId);
 
@@ -285,8 +285,7 @@ public class FilmDbStorage implements FilmStorage {
                             "JOIN film_likes fl2 ON fl1.film_id = fl2.film_id " +
                             "WHERE fl1.user_id = ? AND fl2.user_id != ? " +
                             "GROUP BY fl2.user_id " +
-                            "ORDER BY common_likes DESC " +
-                            "LIMIT 1";
+                            "ORDER BY common_likes DESC ";
 
             List<Integer> similarUserIds = jdbcTemplate.query(findSimilarUserSql, (rs, rowNum) ->
                     rs.getInt("similar_user"), userId, userId);
@@ -296,11 +295,12 @@ public class FilmDbStorage implements FilmStorage {
                 return List.of();
             }
 
+            // Берем первого (самого похожего) пользователя
             int similarUserId = similarUserIds.get(0);
 
-            //Получаем фильмы, которые лайкнул похожий пользователь, но не лайкнул текущий
+            // Шаг Получаем фильмы, которые лайкнул похожий пользователь, но не лайкнул текущий
             String getRecommendationsSql =
-                    "SELECT DISTINCT f.*, m.name AS mpa_name " +
+                    "SELECT f.id, f.name, f.description, f.release_date, f.duration, f.mpa_rating_id, m.name AS mpa_name " +
                             "FROM films f " +
                             "LEFT JOIN mpa_ratings m ON f.mpa_rating_id = m.id " +
                             "WHERE f.id IN (" +
