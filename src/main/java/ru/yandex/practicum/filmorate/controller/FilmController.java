@@ -57,4 +57,12 @@ public class FilmController {
     public ResponseEntity<List<Film>> getPopularFilms(@RequestParam(defaultValue = "10") int count) {
         return ResponseEntity.ok(filmService.getPopularFilms(count));
     }
+
+    //метод по задаче удаление
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteFilm(@PathVariable int id) {
+        filmService.deleteFilm(id);
+        return ResponseEntity.ok().build();
+    }
+
 }

@@ -123,7 +123,6 @@ public class FilmService {
         }
     }
 
-
     public void validateFilm(Film film) {
         if (film.getName() == null || film.getName().isBlank()) {
             throw new ValidationException("Название фильма не может быть пустым.");
@@ -140,5 +139,30 @@ public class FilmService {
         if (film.getDuration() <= 0) {
             throw new ValidationException("Продолжительность фильма должна быть положительным числом.");
         }
+    }
+
+    //По задаче рекомендации
+    public List<Film> getRecommendedFilms(int userId) {
+        // Если пользователя нет — просто возвращаем пустой список
+        if (userStorage.getUserById(userId) == null) {
+            return List.of();
+        }
+        try {
+            return filmStorage.getRecommendedFilms(userId);
+        } catch (Exception e) {
+            // Возвращаем пустой список при любой ошибке
+            System.err.println("Error in getRecommendedFilms: " + e.getMessage());
+            e.printStackTrace();
+            return List.of();
+        }
+    }
+
+    //по задаче удаление
+    public void deleteFilm(int id) {
+        Film film = filmStorage.getFilmById(id);
+        if (film == null) {
+            throw new NotFoundException("Фильм с id " + id + " не найден.");
+        }
+        filmStorage.deleteFilm(id);
     }
 }
