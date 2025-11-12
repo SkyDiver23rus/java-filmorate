@@ -58,10 +58,6 @@ public class FilmDbStorage implements FilmStorage {
                 updateFilmGenres(film);
             }
 
-            if (film.getDirectors() != null && !film.getDirectors().isEmpty()) {
-                saveFilmDirectors(film.getId(), film.getDirectors());
-            }
-
             return getFilmById(film.getId());
         } catch (DataAccessException e) {
             throw new RuntimeException("Database error while adding film", e);
@@ -88,8 +84,6 @@ public class FilmDbStorage implements FilmStorage {
 
             updateFilmGenres(film);
 
-            saveFilmDirectors(film.getId(), film.getDirectors());
-
             return getFilmById(film.getId());
         } catch (DataAccessException e) {
             throw new RuntimeException("Database error while updating film", e);
@@ -107,7 +101,6 @@ public class FilmDbStorage implements FilmStorage {
                 Film film = mapRowToFilm(rs);
                 film.setGenres(getGenresForFilmIds(Set.of(film.getId())).getOrDefault(film.getId(), new ArrayList<>()));
                 film.setLikes(new HashSet<>(getLikesForFilmIds(Set.of(film.getId())).getOrDefault(film.getId(), Collections.emptyList())));
-                film.setDirectors(loadDirectors(film.getId()));
                 return film;
             }, id);
             return films.isEmpty() ? null : films.get(0);
@@ -140,7 +133,6 @@ public class FilmDbStorage implements FilmStorage {
             for (Film film : films) {
                 film.setGenres(genresByFilmId.getOrDefault(film.getId(), new ArrayList<>()));
                 film.setLikes(new HashSet<>(likesByFilmId.getOrDefault(film.getId(), Collections.emptyList())));
-                film.setDirectors(loadDirectors(film.getId()));
             }
             return films;
         } catch (DataAccessException e) {
@@ -192,7 +184,6 @@ public class FilmDbStorage implements FilmStorage {
             for (Film film : films) {
                 film.setGenres(genresByFilmId.getOrDefault(film.getId(), new ArrayList<>()));
                 film.setLikes(new HashSet<>(likesByFilmId.getOrDefault(film.getId(), Collections.emptyList())));
-                film.setDirectors(loadDirectors(film.getId()));
             }
             return films;
         } catch (DataAccessException e) {
@@ -362,5 +353,4 @@ public class FilmDbStorage implements FilmStorage {
             throw new RuntimeException("Database error while deleting film", e);
         }
     }
-
 }
