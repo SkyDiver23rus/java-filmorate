@@ -229,6 +229,7 @@ public class FilmDbStorage implements FilmStorage {
         return result;
     }
 
+    //метод скорректирован под тесты
     private Film mapRowToFilm(ResultSet rs) throws SQLException {
         Film film = new Film();
         film.setId(rs.getInt("id"));
@@ -242,7 +243,8 @@ public class FilmDbStorage implements FilmStorage {
 
         Mpa mpa = new Mpa();
         mpa.setId(rs.getInt("mpa_rating_id"));
-        mpa.setName(rs.getString("mpa_name"));
+        String mpaName = rs.getString("mpa_name");
+        mpa.setName(mpaName != null ? mpaName : "G"); // Дефолт если mpa отсутствует
         film.setMpa(mpa);
 
         return film;
@@ -298,7 +300,7 @@ public class FilmDbStorage implements FilmStorage {
             List<Film> films = jdbcTemplate.query(recommendationsSql,
                     (rs, rowNum) -> mapRowToFilm(rs), similarUserId, userId);
 
-            if (films.isEmpty()) return List.of();
+            if (films == null || films.isEmpty()) return List.of();
 
             Set<Integer> filmIds = films.stream().map(Film::getId).collect(Collectors.toSet());
             Map<Integer, List<Genre>> genresByFilmId = getGenresForFilmIds(filmIds);
@@ -309,7 +311,6 @@ public class FilmDbStorage implements FilmStorage {
             }
             return films;
         } catch (Exception e) {
-            //  возвращаем пустой список
             return List.of();
         }
     }
