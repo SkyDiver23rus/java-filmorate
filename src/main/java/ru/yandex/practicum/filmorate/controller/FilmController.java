@@ -58,12 +58,4 @@ public class FilmController {
         return ResponseEntity.ok(filmService.getPopularFilms(count));
     }
 
-    //по задаче рекомендации
-    @GetMapping("/{id}/recommendations")
-    public ResponseEntity<List<Film>> getRecommendations(@PathVariable int id) {
-        List<Film> recommended = filmService.getRecommendedFilms(id);
-        return ResponseEntity.ok(recommended);
-    }
-
-
 }
