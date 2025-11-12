@@ -58,9 +58,11 @@ public class FilmController {
         return ResponseEntity.ok(filmService.getPopularFilms(count));
     }
 
-    // получение всех фильмов режиссера
-    @GetMapping("/director/{directorId}")
-    public ResponseEntity<List<Film>> filmByDirector(@PathVariable int directorId, @RequestParam String sortBy) {
-        return ResponseEntity.ok(filmService.getFilmsByDirectorSorted(directorId, sortBy));
+    //метод по задаче удаление
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteFilm(@PathVariable int id) {
+        filmService.deleteFilm(id);
+        return ResponseEntity.ok().build();
     }
+
 }

@@ -154,4 +154,27 @@ public class UserDbStorage implements UserStorage {
 
         return allFriends;
     }
+
+    //по задаче удаление
+    @Override
+    public void deleteUser(int id) {
+        try {
+            // Удаляем дружбу (входящие и исходящие)
+            String deleteOutgoingFriendshipsSql = "DELETE FROM friendships WHERE user_id = ?";
+            jdbcTemplate.update(deleteOutgoingFriendshipsSql, id);
+
+            String deleteIncomingFriendshipsSql = "DELETE FROM friendships WHERE friend_id = ?";
+            jdbcTemplate.update(deleteIncomingFriendshipsSql, id);
+
+            // Удаляем лайки пользователя
+            String deleteLikesSql = "DELETE FROM film_likes WHERE user_id = ?";
+            jdbcTemplate.update(deleteLikesSql, id);
+
+            // Удаляем пользователя
+            String deleteUserSql = "DELETE FROM users WHERE id = ?";
+            jdbcTemplate.update(deleteUserSql, id);
+        } catch (Exception e) {
+            throw new RuntimeException("Database error while deleting user", e);
+        }
+    }
 }

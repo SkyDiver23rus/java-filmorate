@@ -106,4 +106,10 @@ public class UserService {
             user.setName(user.getLogin());
         }
     }
+
+    //по задаче удаление
+    public void deleteUser(int id) {
+        User user = validateUserExists(id);
+        userStorage.deleteUser(id);
+    }
 }
