@@ -271,6 +271,8 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public List<Film> getFilmsByFilter(String query, List<String> by) {
         try {
+            List<String> querys = new ArrayList<>();
+
             String sql = "SELECT f.*, m.name as mpa_name, "
                     + "COUNT(fl.user_id) as likes_count "
                     + "FROM films f "
@@ -283,18 +285,20 @@ public class FilmDbStorage implements FilmStorage {
                 sql += "WHERE ";
             }
             if (by.contains("director")) {
-                sql += "LOWER(d.name) LIKE LOWER('%?%') ";
+                sql += "LOWER(d.name) LIKE LOWER(?) ";
+                querys.add("%" + query + "%");
             }
             if (by.contains("director") && by.contains("title")) {
                 sql += " OR ";
             }
             if (by.contains("title")) {
-                sql += "LOWER(f.title) LIKE LOWER('%?%') ";
+                sql += "LOWER(f.name) LIKE LOWER(?) ";
+                querys.add("%" + query + "%");
             }
 
             sql += "GROUP BY f.id, m.name";
 
-            List<Film> films = jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs), query, query);
+            List<Film> films = jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs), querys.toArray());
 
             if (films.isEmpty()) return films;
 
