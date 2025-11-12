@@ -270,7 +270,7 @@ public class FilmDbStorage implements FilmStorage {
     // по задаче рекомендации
     @Override
     public List<Film> getRecommendedFilms(int userId) {
-        //пользователь с максимальным количеством совпадающих лайков
+        // Найти самого похожего пользователя
         String getSimilarUserSql =
                 "SELECT fl2.user_id AS similar_user, COUNT(*) as common_likes " +
                         "FROM film_likes fl1 " +
@@ -279,33 +279,33 @@ public class FilmDbStorage implements FilmStorage {
                         "GROUP BY fl2.user_id " +
                         "ORDER BY common_likes DESC " +
                         "LIMIT 1";
-
         List<Integer> similarUserIds = jdbcTemplate.query(getSimilarUserSql, (rs, rowNum) ->
                 rs.getInt("similar_user"), userId, userId);
 
         if (similarUserIds.isEmpty()) {
-            return Collections.emptyList();
+            // Нет похожего пользователя — рекомендаций нет
+            return List.of();
         }
         int similarUserId = similarUserIds.get(0);
 
-        // Получаем id фильмов, которые лайкнул похожий пользователь, а текущий - нет
+        // Фильмы, которые лайкнул похожий пользователь, а исходный — нет
         String recommendationsSql =
-                "SELECT f.* , m.name AS mpa_name " +
+                "SELECT f.*, m.name AS mpa_name " +
                         "FROM films f " +
                         "LEFT JOIN mpa_ratings m ON f.mpa_rating_id = m.id " +
                         "JOIN film_likes fl ON f.id = fl.film_id " +
                         "WHERE fl.user_id = ? AND f.id NOT IN (" +
                         "SELECT film_id FROM film_likes WHERE user_id = ?" +
                         ")";
+        List<Film> films = jdbcTemplate.query(recommendationsSql,
+                (rs, rowNum) -> mapRowToFilm(rs), similarUserId, userId);
 
-        List<Film> films = jdbcTemplate.query(recommendationsSql, (rs, rowNum) -> mapRowToFilm(rs), similarUserId, userId);
+        if (films.isEmpty()) return List.of();
 
-        if (films.isEmpty()) return films;
-
+        // Добавляем жанры и лайки
         Set<Integer> filmIds = films.stream().map(Film::getId).collect(Collectors.toSet());
         Map<Integer, List<Genre>> genresByFilmId = getGenresForFilmIds(filmIds);
         Map<Integer, List<Integer>> likesByFilmId = getLikesForFilmIds(filmIds);
-
         for (Film film : films) {
             film.setGenres(genresByFilmId.getOrDefault(film.getId(), new ArrayList<>()));
             film.setLikes(new HashSet<>(likesByFilmId.getOrDefault(film.getId(), Collections.emptyList())));
