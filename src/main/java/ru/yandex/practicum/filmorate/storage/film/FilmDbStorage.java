@@ -15,6 +15,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -233,18 +234,17 @@ public class FilmDbStorage implements FilmStorage {
     private Film mapRowToFilm(ResultSet rs) throws SQLException {
         Film film = new Film();
         film.setId(rs.getInt("id"));
-        film.setName(rs.getString("name"));
-        film.setDescription(rs.getString("description"));
+        // Защита от null
+        film.setName(Optional.ofNullable(rs.getString("name")).orElse(""));
+        film.setDescription(Optional.ofNullable(rs.getString("description")).orElse(""));
         Date releaseDate = rs.getDate("release_date");
-        if (releaseDate != null) {
-            film.setReleaseDate(releaseDate.toLocalDate());
-        }
+        film.setReleaseDate(releaseDate != null ? releaseDate.toLocalDate() : LocalDate.MIN);
         film.setDuration(rs.getInt("duration"));
 
         Mpa mpa = new Mpa();
         mpa.setId(rs.getInt("mpa_rating_id"));
         String mpaName = rs.getString("mpa_name");
-        mpa.setName(mpaName != null ? mpaName : "G"); // Дефолт если mpa отсутствует
+        mpa.setName(mpaName != null ? mpaName : "G");
         film.setMpa(mpa);
 
         return film;
@@ -273,6 +273,7 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public List<Film> getRecommendedFilms(int userId) {
         try {
+            //Находим пользователя с похожими лайками
             String getSimilarUserSql =
                     "SELECT fl2.user_id AS similar_user, COUNT(*) as common_likes " +
                             "FROM film_likes fl1 " +
@@ -284,11 +285,11 @@ public class FilmDbStorage implements FilmStorage {
             List<Integer> similarUserIds = jdbcTemplate.query(getSimilarUserSql, (rs, rowNum) ->
                     rs.getInt("similar_user"), userId, userId);
 
-            if (similarUserIds.isEmpty()) {
-                return List.of();
-            }
+            if (similarUserIds == null || similarUserIds.isEmpty()) return List.of();
+
             int similarUserId = similarUserIds.get(0);
 
+            //Список фильмов, которые лайкнул похожий пользователь, а текущий — нет
             String recommendationsSql =
                     "SELECT f.*, m.name AS mpa_name " +
                             "FROM films f " +
@@ -297,20 +298,35 @@ public class FilmDbStorage implements FilmStorage {
                             "WHERE fl.user_id = ? AND f.id NOT IN (" +
                             "SELECT film_id FROM film_likes WHERE user_id = ?" +
                             ")";
-            List<Film> films = jdbcTemplate.query(recommendationsSql,
-                    (rs, rowNum) -> mapRowToFilm(rs), similarUserId, userId);
-
+            List<Film> films = jdbcTemplate.query(recommendationsSql, (rs, rowNum) -> mapRowToFilm(rs), similarUserId, userId);
             if (films == null || films.isEmpty()) return List.of();
 
+            //  genres и likes не null
             Set<Integer> filmIds = films.stream().map(Film::getId).collect(Collectors.toSet());
             Map<Integer, List<Genre>> genresByFilmId = getGenresForFilmIds(filmIds);
             Map<Integer, List<Integer>> likesByFilmId = getLikesForFilmIds(filmIds);
             for (Film film : films) {
-                film.setGenres(genresByFilmId.getOrDefault(film.getId(), new ArrayList<>()));
-                film.setLikes(new HashSet<>(likesByFilmId.getOrDefault(film.getId(), Collections.emptyList())));
+                // всегда не null
+                film.setGenres(genresByFilmId != null
+                        ? genresByFilmId.getOrDefault(film.getId(), new ArrayList<>())
+                        : new ArrayList<>());
+                film.setLikes(likesByFilmId != null
+                        ? new HashSet<>(likesByFilmId.getOrDefault(film.getId(), Collections.emptyList()))
+                        : new HashSet<>());
+                // пробуем убрать null
+                if (film.getName() == null) film.setName("");
+                if (film.getDescription() == null) film.setDescription("");
+                if (film.getReleaseDate() == null) film.setReleaseDate(LocalDate.MIN);
+                if (film.getMpa() == null) {
+                    Mpa mpa = new Mpa();
+                    mpa.setId(1);
+                    mpa.setName("G");
+                    film.setMpa(mpa);
+                }
             }
             return films;
         } catch (Exception e) {
+            //вернем пустой список, а не null
             return List.of();
         }
     }
