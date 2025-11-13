@@ -162,7 +162,7 @@ public class FilmService {
         if ((query != null && by.isEmpty()) || (query == null && !by.isEmpty())) {
             throw new ValidationException("Не полный список парметров запроса.");
         }
-        if (allowedParametersForSearch.containsAll(by)) {
+        if (!allowedParametersForSearch.containsAll(by)) {
             throw new ValidationException("Неверные параметры запроса.");
         }
 
