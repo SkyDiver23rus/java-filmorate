@@ -17,6 +17,7 @@ import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -95,11 +96,17 @@ public class FilmService {
         filmStorage.removeLike(filmId, userId);
     }
 
-    public List<Film> getPopularFilms(int count) {
+    public List<Film> getPopularFilms(int count, Integer genreId, Integer year) {
         if (count <= 0) {
             throw new ValidationException("Количество фильмов должно быть положительным числом.");
         }
-        return filmStorage.getPopularFilms(count);
+        if (genreId != null) {
+            validateGenre(genreId);
+        }
+        if (year != null && year <= 0) {
+            throw new ValidationException("Год должен быть положительным числом");
+        }
+        return filmStorage.getPopularFilms(count, genreId, year);
     }
 
     public List<Film> getFilmsByDirectorSorted(int directorId, String sortBy) {
@@ -153,6 +160,25 @@ public class FilmService {
         }
         if (film.getDuration() <= 0) {
             throw new ValidationException("Продолжительность фильма должна быть положительным числом.");
+        }
+    }
+
+    public List<Film> getFilmsByFilter(String query, List<String> by) {
+        Set<String> allowedParametersForSearch = Set.of("director", "title");
+
+        if ((query != null && by.isEmpty()) || (query == null && !by.isEmpty())) {
+            throw new ValidationException("Не полный список парметров запроса.");
+        }
+        if (!allowedParametersForSearch.containsAll(by)) {
+            throw new ValidationException("Неверные параметры запроса.");
+        }
+
+        return filmStorage.getFilmsByFilter(query, by);
+    }
+
+    private void validateGenre(int genreId) {
+        if (genreDbStorage.getGenreById(genreId).isEmpty()) {
+            throw new NotFoundException("Жанр с id " + genreId + " не найден.");
         }
     }
 
