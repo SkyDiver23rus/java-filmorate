@@ -157,13 +157,3 @@ public class FilmService {
             throw new RuntimeException("Ошибка при получении рекомендаций", e);
         }
     }
-
-    //по задаче удаление
-    public void deleteFilm(int id) {
-        Film film = filmStorage.getFilmById(id);
-        if (film == null) {
-            throw new NotFoundException("Фильм с id " + id + " не найден.");
-        }
-        filmStorage.deleteFilm(id);
-    }
-}
