@@ -54,8 +54,8 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public ResponseEntity<List<Film>> getPopularFilms(@RequestParam(defaultValue = "10") int count) {
-        return ResponseEntity.ok(filmService.getPopularFilms(count));
+    public ResponseEntity<List<Film>> getPopularFilms(@RequestParam(defaultValue = "10") int count, @RequestParam(required = false) Integer genreId, @RequestParam(required = false) Integer year) {
+        return ResponseEntity.ok(filmService.getPopularFilms(count, genreId, year));
     }
 
     // получение всех фильмов режиссера
