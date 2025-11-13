@@ -24,6 +24,7 @@ class UserControllerValidationTest {
                 new InMemoryFilmStorage(),
                 new InMemoryUserStorage(),
                 null,
+                null,
                 null
         );
         controller = new UserController(userService, filmService);

@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.DAO.GenreDbStorage;
 import ru.yandex.practicum.filmorate.storage.DAO.MpaDbStorage;
+import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -24,17 +25,20 @@ public class FilmService {
     private final UserStorage userStorage;
     private final MpaDbStorage mpaDbStorage;
     private final GenreDbStorage genreDbStorage;
+    private final DirectorService directorService;
     private static final LocalDate CINEMA_BIRTHDAY = LocalDate.of(1895, 12, 28);
 
     @Autowired
     public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage,
                        @Qualifier("userDbStorage") UserStorage userStorage,
                        MpaDbStorage mpaDbStorage,
-                       GenreDbStorage genreDbStorage) {
+                       GenreDbStorage genreDbStorage,
+                       DirectorService directorService) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
         this.mpaDbStorage = mpaDbStorage;
         this.genreDbStorage = genreDbStorage;
+        this.directorService = directorService;
     }
 
     public Film addFilm(Film film) {
@@ -98,6 +102,15 @@ public class FilmService {
         return filmStorage.getPopularFilms(count);
     }
 
+    public List<Film> getFilmsByDirectorSorted(int directorId, String sortBy) {
+        if (!"likes".equalsIgnoreCase(sortBy) && !"year".equalsIgnoreCase(sortBy)) {
+            throw new ValidationException("Параметр sortBy должен быть 'likes' или 'year'.");
+        }
+        directorService.ensureExists(directorId);
+
+        return ((FilmDbStorage) filmStorage).getFilmsByDirectorSorted(directorId, sortBy);
+    }
+
     private void validateMpa(Film film) {
         if (film.getMpa() == null) {
             Mpa defaultMpa = new Mpa();
@@ -124,6 +137,7 @@ public class FilmService {
         }
     }
 
+
     public void validateFilm(Film film) {
         if (film.getName() == null || film.getName().isBlank()) {
             throw new ValidationException("Название фильма не может быть пустым.");
@@ -142,6 +156,7 @@ public class FilmService {
         }
     }
 
+
     //По задаче рекомендации
     public List<Film> getRecommendedFilms(int userId) {
         // Проверяем, что пользователь существует
@@ -157,3 +172,4 @@ public class FilmService {
             throw new RuntimeException("Ошибка при получении рекомендаций", e);
         }
     }
+}
