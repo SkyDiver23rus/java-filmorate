@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -16,7 +17,7 @@ import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 import java.time.LocalDate;
 import java.util.List;
 
-
+@Slf4j
 @Service
 public class FilmService {
     private final FilmStorage filmStorage;
@@ -143,17 +144,26 @@ public class FilmService {
 
     //По задаче рекомендации
     public List<Film> getRecommendedFilms(int userId) {
-        // Если пользователя нет — просто возвращаем пустой список
+        // Проверяем, что пользователь существует
         if (userStorage.getUserById(userId) == null) {
-            return List.of();
+            throw new NotFoundException("Пользователь с id " + userId + " не найден.");
         }
+
         try {
             return filmStorage.getRecommendedFilms(userId);
         } catch (Exception e) {
-            // Возвращаем пустой список при любой ошибке
-            System.err.println("Error in getRecommendedFilms: " + e.getMessage());
-            e.printStackTrace();
-            return List.of();
+            log.error("Ошибка при получении рекомендаций для пользователя с id {}: {}",
+                    userId, e.getMessage(), e);
+            throw new RuntimeException("Ошибка при получении рекомендаций", e);
         }
+    }
+
+    //по задаче удаление
+    public void deleteFilm(int id) {
+        Film film = filmStorage.getFilmById(id);
+        if (film == null) {
+            throw new NotFoundException("Фильм с id " + id + " не найден.");
+        }
+        filmStorage.deleteFilm(id);
     }
 }
