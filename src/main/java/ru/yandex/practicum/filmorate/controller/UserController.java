@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
@@ -17,7 +18,6 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
     private final FilmService filmService;
-
     public UserController(UserService userService, FilmService filmService) {
         this.userService = userService;
         this.filmService = filmService;
@@ -69,7 +69,4 @@ public class UserController {
         List<Film> recommended = filmService.getRecommendedFilms(id);
         return ResponseEntity.ok(recommended);
     }
-
 }
-
-
