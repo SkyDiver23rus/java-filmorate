@@ -16,6 +16,7 @@ import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 
 @Service
@@ -156,6 +157,15 @@ public class FilmService {
     }
 
     public List<Film> getFilmsByFilter(String query, List<String> by) {
+        Set<String> allowedParametersForSearch = Set.of("director", "title");
+
+        if ((query != null && by.isEmpty()) || (query == null && !by.isEmpty())) {
+            throw new ValidationException("Не полный список парметров запроса.");
+        }
+        if (allowedParametersForSearch.containsAll(by)) {
+            throw new ValidationException("Неверные параметры запроса.");
+        }
+
         return filmStorage.getFilmsByFilter(query, by);
     }
 }
