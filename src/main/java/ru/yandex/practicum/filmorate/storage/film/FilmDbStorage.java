@@ -336,4 +336,55 @@ public class FilmDbStorage implements FilmStorage {
             return director;
         }, filmId));
     }
+
+    //поиск фильмов по имени режиссёра/названию фильма
+    @Override
+    public List<Film> getFilmsByFilter(String query, List<String> by) {
+        try {
+            List<String> queries = new ArrayList<>();
+
+            String sql = "SELECT f.*, m.name as mpa_name, "
+                    + "COUNT(fl.user_id) as likes_count "
+                    + "FROM films f "
+                    + "LEFT JOIN mpa_ratings m ON f.mpa_rating_id = m.id "
+                    + "LEFT JOIN film_likes fl ON f.id = fl.film_id "
+                    + "LEFT JOIN film_directors fd ON f.id = fd.film_id "
+                    + "LEFT JOIN directors d ON fd.director_id = d.id ";
+
+            if (!by.isEmpty() && (by.contains("director") || by.contains("title"))) {
+                sql += "WHERE ";
+            }
+            if (by.contains("director")) {
+                sql += "LOWER(d.name) LIKE LOWER(?) ";
+                queries.add("%" + query + "%");
+            }
+            if (by.contains("director") && by.contains("title")) {
+                sql += " OR ";
+            }
+            if (by.contains("title")) {
+                sql += "LOWER(f.name) LIKE LOWER(?) ";
+                queries.add("%" + query + "%");
+            }
+
+            sql += "GROUP BY f.id, m.name";
+
+            List<Film> films = jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs), queries.toArray());
+
+            if (films.isEmpty()) return films;
+
+            Set<Integer> filmIds = films.stream().map(Film::getId).collect(Collectors.toSet());
+
+            Map<Integer, List<Genre>> genresByFilmId = getGenresForFilmIds(filmIds);
+            Map<Integer, List<Integer>> likesByFilmId = getLikesForFilmIds(filmIds);
+
+            for (Film film : films) {
+                film.setGenres(genresByFilmId.getOrDefault(film.getId(), new ArrayList<>()));
+                film.setLikes(new HashSet<>(likesByFilmId.getOrDefault(film.getId(), Collections.emptyList())));
+                film.setDirectors(loadDirectors(film.getId()));
+            }
+            return films;
+        } catch (DataAccessException e) {
+            throw new RuntimeException("Database error while getting films by director, title", e);
+        }
+    }
 }
