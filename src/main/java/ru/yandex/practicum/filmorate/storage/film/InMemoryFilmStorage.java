@@ -7,8 +7,7 @@ import ru.yandex.practicum.filmorate.model.Mpa;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Component //исправлено
-
+@Component
 public class InMemoryFilmStorage implements FilmStorage {
     private final Map<Integer, Film> films = new HashMap<>();
     private int nextId = 1;
@@ -108,4 +107,47 @@ public class InMemoryFilmStorage implements FilmStorage {
     public List<Film> getFilmsByFilter(String query, List<String> by) {
         throw new RuntimeException("Not Implemented");
     }
+
+    @Override
+    public List<Film> getRecommendedFilms(int userId) {
+        // список лайкнутых фильмов
+        Map<Integer, Set<Integer>> likesByUser = new HashMap<>();
+        for (Film film : films.values()) {
+            for (Integer likerId : film.getLikes()) {
+                likesByUser.computeIfAbsent(likerId, k -> new HashSet<>()).add(film.getId());
+            }
+        }
+
+        Set<Integer> userLikes = likesByUser.getOrDefault(userId, Collections.emptySet());
+
+        // Поиск самого похожего по лайкам
+        int maxCommon = 0;
+        int similarUserId = -1;
+        for (Map.Entry<Integer, Set<Integer>> entry : likesByUser.entrySet()) {
+            int otherId = entry.getKey();
+            if (otherId == userId) continue;
+            Set<Integer> otherLikes = entry.getValue();
+            Set<Integer> intersection = new HashSet<>(userLikes);
+            intersection.retainAll(otherLikes);
+            if (intersection.size() > maxCommon) {
+                maxCommon = intersection.size();
+                similarUserId = otherId;
+            }
+        }
+
+        if (similarUserId == -1) {
+            return new ArrayList<>();
+        }
+
+        Set<Integer> similarUserLikes = likesByUser.getOrDefault(similarUserId, Collections.emptySet());
+        // Рекомендуем те, которые похожий лайкнул, а userId нет
+        Set<Integer> recommendedIds = new HashSet<>(similarUserLikes);
+        recommendedIds.removeAll(userLikes);
+
+        return recommendedIds.stream()
+                .map(films::get)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
 }

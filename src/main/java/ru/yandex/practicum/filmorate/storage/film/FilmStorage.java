@@ -20,6 +20,8 @@ public interface FilmStorage {
 
     void removeLike(int filmId, int userId);
 
+    List<Film> getRecommendedFilms(int userId); //по задаче рекомендации
+
     List<Film> getFilmsByFilter(String query, List<String> by);
 
     List<Film> getPopularFilms(int count, Integer genreId, Integer year);

@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -18,7 +19,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
-
+@Slf4j
 @Service
 public class FilmService {
     private final FilmStorage filmStorage;
@@ -178,6 +179,23 @@ public class FilmService {
     private void validateGenre(int genreId) {
         if (genreDbStorage.getGenreById(genreId).isEmpty()) {
             throw new NotFoundException("Жанр с id " + genreId + " не найден.");
+        }
+    }
+
+
+    //По задаче рекомендации
+    public List<Film> getRecommendedFilms(int userId) {
+        // Проверяем, что пользователь существует
+        if (userStorage.getUserById(userId) == null) {
+            throw new NotFoundException("Пользователь с id " + userId + " не найден.");
+        }
+
+        try {
+            return filmStorage.getRecommendedFilms(userId);
+        } catch (Exception e) {
+            log.error("Ошибка при получении рекомендаций для пользователя с id {}: {}",
+                    userId, e.getMessage(), e);
+            throw new RuntimeException("Ошибка при получении рекомендаций", e);
         }
     }
 }
