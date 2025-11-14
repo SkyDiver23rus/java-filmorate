@@ -180,7 +180,6 @@ public class FilmDbStorage implements FilmStorage {
                     + "FROM films f "
                     + "LEFT JOIN mpa_ratings m ON f.mpa_rating_id = m.id "
                     + "LEFT JOIN film_likes fl ON f.id = fl.film_id "
-                    + "GROUP BY f.id, f.name, f.description, f.release_date, f.duration, f.mpa_rating_id, m.name "
                     + "LEFT JOIN film_genres fg ON f.id = fg.film_id ";
 
             if (genreId != null || year != null) {
