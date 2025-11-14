@@ -54,8 +54,8 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public ResponseEntity<List<Film>> getPopularFilms(@RequestParam(defaultValue = "10") int count) {
-        return ResponseEntity.ok(filmService.getPopularFilms(count));
+    public ResponseEntity<List<Film>> getPopularFilms(@RequestParam(defaultValue = "10") int count, @RequestParam(required = false) Integer genreId, @RequestParam(required = false) Integer year) {
+        return ResponseEntity.ok(filmService.getPopularFilms(count, genreId, year));
     }
 
     //метод по задаче удаление
@@ -63,6 +63,11 @@ public class FilmController {
     public ResponseEntity<Void> deleteFilm(@PathVariable int id) {
         filmService.deleteFilm(id);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<Film>> getFilmsByFilter(@RequestParam(required = false) String query, @RequestParam(required = false) List<String> by) {
+        return ResponseEntity.ok(filmService.getFilmsByFilter(query, by));
     }
 
 }
