@@ -25,4 +25,6 @@ public interface UserStorage {
 
     List<User> getCommonFriends(int userId1, int userId2);
 
+    void deleteUser(int id); //по задаче удаления
+
 }

@@ -79,4 +79,9 @@ public class InMemoryUserStorage implements UserStorage {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public void deleteUser(int id) {
+        users.remove(id);
+    }
 }

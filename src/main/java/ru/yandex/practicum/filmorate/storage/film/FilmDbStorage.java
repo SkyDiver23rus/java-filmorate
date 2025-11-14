@@ -477,4 +477,23 @@ public class FilmDbStorage implements FilmStorage {
         }
     }
 
+    @Override
+    public void deleteFilm(int id) {
+        try {
+            // Удаляем лайки фильма
+            String deleteLikesSql = "DELETE FROM film_likes WHERE film_id = ?";
+            jdbcTemplate.update(deleteLikesSql, id);
+
+            // Удаляем жанры фильма
+            String deleteGenresSql = "DELETE FROM film_genres WHERE film_id = ?";
+            jdbcTemplate.update(deleteGenresSql, id);
+
+            // Удаляем сам фильм
+            String deleteFilmSql = "DELETE FROM films WHERE id = ?";
+            jdbcTemplate.update(deleteFilmSql, id);
+        } catch (DataAccessException e) {
+            throw new RuntimeException("Database error while deleting film", e);
+        }
+    }
 }
+

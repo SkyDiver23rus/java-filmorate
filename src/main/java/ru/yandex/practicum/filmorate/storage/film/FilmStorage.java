@@ -25,4 +25,6 @@ public interface FilmStorage {
     List<Film> getFilmsByFilter(String query, List<String> by);
 
     List<Film> getPopularFilms(int count, Integer genreId, Integer year);
+
+    void deleteFilm(int id); //по задаче удаление
 }

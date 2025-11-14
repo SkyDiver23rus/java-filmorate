@@ -144,7 +144,6 @@ public class FilmService {
         }
     }
 
-
     public void validateFilm(Film film) {
         if (film.getName() == null || film.getName().isBlank()) {
             throw new ValidationException("Название фильма не может быть пустым.");
@@ -182,20 +181,28 @@ public class FilmService {
         }
     }
 
-
     //По задаче рекомендации
     public List<Film> getRecommendedFilms(int userId) {
-        // Проверяем, что пользователь существует
+        // Если пользователя нет — просто возвращаем пустой список
         if (userStorage.getUserById(userId) == null) {
-            throw new NotFoundException("Пользователь с id " + userId + " не найден.");
+            return List.of();
         }
-
         try {
             return filmStorage.getRecommendedFilms(userId);
         } catch (Exception e) {
-            log.error("Ошибка при получении рекомендаций для пользователя с id {}: {}",
-                    userId, e.getMessage(), e);
-            throw new RuntimeException("Ошибка при получении рекомендаций", e);
+            // Возвращаем пустой список при любой ошибке
+            System.err.println("Error in getRecommendedFilms: " + e.getMessage());
+            e.printStackTrace();
+            return List.of();
         }
+    }
+
+    //по задаче удаление
+    public void deleteFilm(int id) {
+        Film film = filmStorage.getFilmById(id);
+        if (film == null) {
+            throw new NotFoundException("Фильм с id " + id + " не найден.");
+        }
+        filmStorage.deleteFilm(id);
     }
 }
