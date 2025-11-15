@@ -81,3 +81,18 @@ CREATE TABLE IF NOT EXISTS review_likes (
     FOREIGN KEY (review_id) REFERENCES reviews(review_id),
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+-- Таблица для ленты событий
+CREATE TABLE IF NOT EXISTS events (
+    event_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    event_timestamp BIGINT NOT NULL,
+    user_id INTEGER NOT NULL,
+    event_type VARCHAR(10) NOT NULL,
+    operation VARCHAR(10) NOT NULL,
+    entity_id INTEGER NOT NULL,
+    CONSTRAINT fk_events_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Индекс для быстрого поиска событий по пользователю
+CREATE INDEX IF NOT EXISTS idx_events_user_id ON events(user_id);
+CREATE INDEX IF NOT EXISTS idx_events_timestamp ON events(event_timestamp);

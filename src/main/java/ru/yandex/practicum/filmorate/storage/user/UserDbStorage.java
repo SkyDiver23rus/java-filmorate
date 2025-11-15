@@ -5,7 +5,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.model.EventType;
+import ru.yandex.practicum.filmorate.model.Operation;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.event.EventDbStorage;
 
 import java.sql.*;
 import java.sql.Date;
@@ -15,10 +18,12 @@ import java.util.*;
 public class UserDbStorage implements UserStorage {
 
     private final JdbcTemplate jdbcTemplate;
+    private final EventDbStorage eventDbStorage;
 
     @Autowired
-    public UserDbStorage(JdbcTemplate jdbcTemplate) {
+    public UserDbStorage(JdbcTemplate jdbcTemplate, EventDbStorage eventDbStorage) {
         this.jdbcTemplate = jdbcTemplate;
+        this.eventDbStorage = eventDbStorage;
     }
 
     @Override
@@ -42,21 +47,18 @@ public class UserDbStorage implements UserStorage {
     @Override
     public User updateUser(User user) {
         String sql = "UPDATE users SET email = ?, login = ?, name = ?, birthday = ? WHERE id = ?";
-
         jdbcTemplate.update(sql,
                 user.getEmail(),
                 user.getLogin(),
                 user.getName(),
                 user.getBirthday(),
                 user.getId());
-
         return user;
     }
 
     @Override
     public User getUserById(int id) {
         String sql = "SELECT * FROM users WHERE id = ?";
-
         List<User> users = jdbcTemplate.query(sql, this::mapRowToUser, id);
         if (users.isEmpty()) {
             return null;
@@ -69,7 +71,6 @@ public class UserDbStorage implements UserStorage {
     @Override
     public Optional<User> findUserById(int id) {
         String sql = "SELECT * FROM users WHERE id = ?";
-
         List<User> users = jdbcTemplate.query(sql, this::mapRowToUser, id);
         return users.isEmpty() ? Optional.empty() : Optional.of(users.get(0));
     }
@@ -91,6 +92,8 @@ public class UserDbStorage implements UserStorage {
         String sql = "INSERT INTO friendships (user_id, friend_id) VALUES (?, ?)";
         try {
             jdbcTemplate.update(sql, userId, friendId);
+            // Логирование события добавления друга
+            eventDbStorage.addEvent(userId, EventType.FRIEND, Operation.ADD, friendId);
         } catch (Exception e) {
             // игнорируем
         }
@@ -99,7 +102,12 @@ public class UserDbStorage implements UserStorage {
     @Override
     public void removeFriend(int userId, int friendId) {
         String sql = "DELETE FROM friendships WHERE user_id = ? AND friend_id = ?";
-        jdbcTemplate.update(sql, userId, friendId);
+        int rowsAffected = jdbcTemplate.update(sql, userId, friendId);
+
+        // Логируем событие только если удаление произошло
+        if (rowsAffected > 0) {
+            eventDbStorage.addEvent(userId, EventType.FRIEND, Operation.REMOVE, friendId);
+        }
     }
 
     private User mapRowToUser(ResultSet rs, int rowNum) throws SQLException {

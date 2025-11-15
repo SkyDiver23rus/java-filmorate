@@ -1,10 +1,13 @@
 package ru.yandex.practicum.filmorate.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.event.EventDbStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
@@ -14,9 +17,18 @@ import java.util.stream.Collectors;
 @Service
 public class UserService {
     private final UserStorage userStorage;
+    private final EventDbStorage eventDbStorage;  // Или EventService eventService;
 
-    public UserService(@Qualifier("userDbStorage") UserStorage userStorage) {
+    @Autowired // Новый полный конструктор
+    public UserService(@Qualifier("userDbStorage") UserStorage userStorage,
+                       EventDbStorage eventDbStorage) {
         this.userStorage = userStorage;
+        this.eventDbStorage = eventDbStorage;
+    }
+
+    // Старый конструктор для совместимости
+    public UserService(@Qualifier("userDbStorage") UserStorage userStorage) {
+        this(userStorage, null);
     }
 
     public User addUser(User user) {
@@ -39,7 +51,6 @@ public class UserService {
     }
 
     public List<User> getAllUsers() {
-
         return userStorage.getAllUsers();
     }
 
@@ -69,6 +80,10 @@ public class UserService {
         return userStorage.getCommonFriends(id, otherId);
     }
 
+    public List<Event> getUserFeed(int userId) {
+        validateUserExists(userId);
+        return eventDbStorage.getUserFeed(userId);
+    }
 
     private User getUserWithFriends(int id) {
         User user = userStorage.getUserById(id);
