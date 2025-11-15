@@ -4,8 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.test.context.SpringBootTest; // ← ИЗМЕНИЛ
+import org.springframework.context.annotation.Import; // ← УДАЛИЛ
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -26,35 +26,17 @@ import java.util.Collections;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@JdbcTest
-@AutoConfigureTestDatabase
-@Import({
-        UserDbStorage.class,
-        FilmDbStorage.class,
-        GenreDbStorage.class,
-        MpaDbStorage.class,
-        DirectorDbStorage.class,
-        DirectorService.class
-})
+@SpringBootTest // ← ЗАМЕНИЛ @JdbcTest
+@AutoConfigureTestDatabase // ← ОСТАВИЛ
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class FilmorateApplicationTests {
 
-    @Autowired
-    private UserDbStorage userStorage;
+    private final UserDbStorage userStorage;
+    private final FilmDbStorage filmStorage;
+    private final GenreDbStorage genreStorage;
+    private final MpaDbStorage mpaStorage;
+    private final DirectorService directorService;
 
-    @Autowired
-    private FilmDbStorage filmStorage;
-
-    @Autowired
-    private GenreDbStorage genreStorage;
-
-    @Autowired
-    private MpaDbStorage mpaStorage;
-
-    @Autowired
-    private DirectorService directorService;
-
-    // UserDbStorage
     @Test
     public void testUserStorageCreateAndFind() {
         User user = new User();
@@ -69,7 +51,6 @@ public class FilmorateApplicationTests {
         assertThat(found.get().getEmail()).isEqualTo("test@mail.ru");
     }
 
-    // FilmDbStorage тесты
     @Test
     public void testFilmStorageCreateAndFind() {
         Film film = new Film();
@@ -94,19 +75,16 @@ public class FilmorateApplicationTests {
         assertThat(found.get().getName()).isEqualTo("Avatar");
     }
 
-    //  GenreDbStorage тест
     @Test
     public void testGetAllGenres() {
         assertThat(genreStorage.getAllGenres()).isNotEmpty();
     }
 
-    //  MpaDbStorage тест
     @Test
     public void testGetAllMpa() {
         assertThat(mpaStorage.getAllMpa()).isNotEmpty();
     }
 
-    //  тесты для методов валидации
     @Test
     public void testValidateFilm_valid() {
         FilmService filmService = new FilmService(filmStorage, userStorage, mpaStorage, genreStorage, directorService);
@@ -130,9 +108,9 @@ public class FilmorateApplicationTests {
         FilmService filmService = new FilmService(filmStorage, userStorage, mpaStorage, genreStorage, directorService);
 
         Film invalidFilm = new Film();
-        invalidFilm.setName(""); // Пустое имя
+        invalidFilm.setName("");
         invalidFilm.setDescription(" ");
-        invalidFilm.setReleaseDate(LocalDate.of(1800, 1, 1)); // слишком ранняя дата
+        invalidFilm.setReleaseDate(LocalDate.of(1800, 1, 1));
         invalidFilm.setDuration(-100);
         Mpa mpa = new Mpa();
         mpa.setId(1);
@@ -160,8 +138,8 @@ public class FilmorateApplicationTests {
         UserService userService = new UserService(userStorage);
 
         User invalidUser = new User();
-        invalidUser.setEmail(""); // Некорректный email
-        invalidUser.setLogin(""); // Некорректный login
+        invalidUser.setEmail("");
+        invalidUser.setLogin("");
         invalidUser.setBirthday(LocalDate.now().plusDays(1));
         assertThatThrownBy(() -> userService.validateUser(invalidUser))
                 .isInstanceOfAny(ru.yandex.practicum.filmorate.exception.ValidationException.class);
