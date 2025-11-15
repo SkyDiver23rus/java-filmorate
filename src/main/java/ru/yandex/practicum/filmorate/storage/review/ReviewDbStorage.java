@@ -130,13 +130,13 @@ public class ReviewDbStorage implements ReviewStorage {
     // Обновление поля useful
     private void updateUseful(long reviewId) {
         String sql = """
-            UPDATE reviews
-            SET useful = (
-                COALESCE((SELECT COUNT(*) FROM review_likes WHERE review_id = ? AND is_like = true), 0) -
-                COALESCE((SELECT COUNT(*) FROM review_likes WHERE review_id = ? AND is_like = false), 0)
-            )
-            WHERE review_id = ?
-            """;
+                UPDATE reviews
+                SET useful = (
+                    COALESCE((SELECT COUNT(*) FROM review_likes WHERE review_id = ? AND is_like = true), 0) -
+                    COALESCE((SELECT COUNT(*) FROM review_likes WHERE review_id = ? AND is_like = false), 0)
+                )
+                WHERE review_id = ?
+                """;
         jdbc.update(sql, reviewId, reviewId, reviewId);
     }
 

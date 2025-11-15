@@ -209,9 +209,10 @@ public class FilmService {
         }
         filmStorage.deleteFilm(id);
     }
-	 // по "Общим фильмам"
-	public List<Film> getCommonFilms(int userId, int friendId) {
-           return filmStorage.getCommonFilms(userId, friendId);
+
+    // по "Общим фильмам"
+    public List<Film> getCommonFilms(int userId, int friendId) {
+        return filmStorage.getCommonFilms(userId, friendId);
     }
 
 }

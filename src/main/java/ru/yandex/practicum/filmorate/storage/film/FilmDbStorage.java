@@ -12,10 +12,7 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -495,21 +492,21 @@ public class FilmDbStorage implements FilmStorage {
             throw new RuntimeException("Database error while deleting film", e);
         }
     }
-	   
-	@Override
-public List<Film> getCommonFilms(int userId, int friendId) {
-    String sql = """
-            SELECT f.*
-            FROM films f
-            JOIN film_likes fl1 ON f.id = fl1.film_id
-            JOIN film_likes fl2 ON f.id = fl2.film_id
-            WHERE fl1.user_id = ? AND fl2.user_id = ?
-            GROUP BY f.id
-            ORDER BY COUNT(fl1.user_id) DESC;
-            """;
 
-    return Collections.singletonList(jdbcTemplate.query(sql, this::mapRowToFilm, userId, friendId));
-   }
+    @Override
+    public List<Film> getCommonFilms(int userId, int friendId) {
+        String sql = """
+                SELECT f.*
+                FROM films f
+                JOIN film_likes fl1 ON f.id = fl1.film_id
+                JOIN film_likes fl2 ON f.id = fl2.film_id
+                WHERE fl1.user_id = ? AND fl2.user_id = ?
+                GROUP BY f.id
+                ORDER BY COUNT(fl1.user_id) DESC;
+                """;
+
+        return Collections.singletonList(jdbcTemplate.query(sql, this::mapRowToFilm, userId, friendId));
+    }
 
 }
 
