@@ -59,7 +59,11 @@ public class FilmService {
         validateMpa(film);
         validateGenres(film);
 
-        return filmStorage.updateFilm(film);
+        Film updated = filmStorage.updateFilm(film);
+        if (updated == null) {
+            throw new NotFoundException("Фильм с id " + film.getId() + " не найден.");
+        }
+        return updated;
     }
 
     public Film getFilm(int id) {

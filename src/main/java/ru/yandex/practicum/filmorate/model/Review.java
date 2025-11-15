@@ -11,5 +11,5 @@ public class Review {
     private Long filmId;
     private String content;
     private Boolean isPositive;
-    private Integer useful; // рейтинг полезности (лайк или дизлайк)
+    private Integer useful = 0; // рейтинг полезности (лайк или дизлайк)
 }

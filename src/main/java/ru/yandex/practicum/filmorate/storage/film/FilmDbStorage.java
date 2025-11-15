@@ -508,7 +508,7 @@ public List<Film> getCommonFilms(int userId, int friendId) {
             ORDER BY COUNT(fl1.user_id) DESC;
             """;
 
-    return jdbcTemplate.query(sql, this::mapRowToFilm, userId, friendId);
+    return Collections.singletonList(jdbcTemplate.query(sql, this::mapRowToFilm, userId, friendId));
    }
 
 }
