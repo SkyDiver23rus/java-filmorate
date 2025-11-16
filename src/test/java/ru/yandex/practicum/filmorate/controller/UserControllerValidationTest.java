@@ -21,7 +21,7 @@ class UserControllerValidationTest {
     private UserController controller;
 
     // Заглушка EventStorage
-    private final EventStorage DUMMY_EVENT_STORAGE = new EventStorage() {
+    private final EventStorage dummyEventStorage = new EventStorage() {
         @Override
         public void addEvent(int userId, String eventType, String operation, int entityId) {
         }
@@ -36,7 +36,7 @@ class UserControllerValidationTest {
     void setUp() {
         InMemoryUserStorage userStorage = new InMemoryUserStorage();
         // Передаём userStorage + заглушку eventStorage
-        UserService userService = new UserService(userStorage, DUMMY_EVENT_STORAGE);
+        UserService userService = new UserService(userStorage, dummyEventStorage);
 
         FilmService filmService = new FilmService(
                 new InMemoryFilmStorage(),
@@ -44,7 +44,7 @@ class UserControllerValidationTest {
                 null,
                 null,
                 null,
-                DUMMY_EVENT_STORAGE
+                dummyEventStorage
         );
 
         controller = new UserController(userService, filmService);
