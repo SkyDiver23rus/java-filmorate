@@ -28,6 +28,6 @@ public interface FilmStorage {
 
     void deleteFilm(int id); //по задаче удаление
 
-    List<Film> getCommonFilms(int userId, int friendId); //по "Общим фильмам" 
+    List<Film> getCommonFilms(int userId, int friendId); //по "Общим фильмам"
 
 }
