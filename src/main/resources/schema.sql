@@ -81,3 +81,17 @@ CREATE TABLE IF NOT EXISTS review_likes (
     FOREIGN KEY (review_id) REFERENCES reviews(review_id),
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+CREATE TABLE IF NOT EXISTS events (
+    event_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    event_type VARCHAR(20) NOT NULL, -- LIKE, REVIEW, FRIEND
+    operation VARCHAR(20) NOT NULL,  -- REMOVE, ADD, UPDATE
+    entity_id INT NOT NULL,          -- id фильма, отзыва или друга
+    timestamp BIGINT NOT NULL,       -- время в миллисекундах
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Индексы для быстрого поиска событий пользователя
+CREATE INDEX IF NOT EXISTS idx_events_user_id ON events(user_id);
+CREATE INDEX IF NOT EXISTS idx_events_timestamp ON events(timestamp);
