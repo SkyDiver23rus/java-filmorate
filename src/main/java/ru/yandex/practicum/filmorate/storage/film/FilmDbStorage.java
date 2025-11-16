@@ -152,7 +152,7 @@ public class FilmDbStorage implements FilmStorage {
             String sql = "INSERT INTO film_likes (film_id, user_id) VALUES (?, ?)";
             jdbcTemplate.update(sql, filmId, userId);
         } catch (DataAccessException e) {
-//игнорим
+            // игнорим
         }
     }
 
@@ -162,7 +162,7 @@ public class FilmDbStorage implements FilmStorage {
             String sql = "DELETE FROM film_likes WHERE film_id = ? AND user_id = ?";
             jdbcTemplate.update(sql, filmId, userId);
         } catch (DataAccessException e) {
-//игнорим
+            // игнорим
         }
     }
 
@@ -219,11 +219,10 @@ public class FilmDbStorage implements FilmStorage {
         }
     }
 
-
-    //жанры за 1 запрос!(вроде:))
     public Map<Integer, List<Genre>> getGenresForFilmIds(Set<Integer> filmIds) {
-        if (filmIds == null || filmIds.isEmpty())
+        if (filmIds == null || filmIds.isEmpty()) {
             return new HashMap<>();
+        }
 
         String inSql = filmIds.stream().map(x -> "?").collect(Collectors.joining(","));
         String sql = "SELECT fg.film_id, g.id, g.name FROM film_genres fg " +
@@ -241,10 +240,10 @@ public class FilmDbStorage implements FilmStorage {
         return result;
     }
 
-    // то же с лайками
     public Map<Integer, List<Integer>> getLikesForFilmIds(Set<Integer> filmIds) {
-        if (filmIds == null || filmIds.isEmpty())
+        if (filmIds == null || filmIds.isEmpty()) {
             return new HashMap<>();
+        }
 
         String inSql = filmIds.stream().map(x -> "?").collect(Collectors.joining(","));
         String sql = "SELECT film_id, user_id FROM film_likes WHERE film_id IN (" + inSql + ")";
