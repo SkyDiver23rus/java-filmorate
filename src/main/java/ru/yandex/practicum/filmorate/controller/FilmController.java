@@ -69,13 +69,13 @@ public class FilmController {
     public ResponseEntity<List<Film>> getFilmsByFilter(@RequestParam(required = false) String query, @RequestParam(required = false) List<String> by) {
         return ResponseEntity.ok(filmService.getFilmsByFilter(query, by));
     }
-	
+
     @GetMapping("/common")
     public ResponseEntity<List<Film>> getCommonFilms(
-        @RequestParam int userId,
-        @RequestParam int friendId) {
+            @RequestParam int userId,
+            @RequestParam int friendId) {
 
-    return ResponseEntity.ok(filmService.getCommonFilms(userId, friendId));
+        return ResponseEntity.ok(filmService.getCommonFilms(userId, friendId));
     }
 
 }
