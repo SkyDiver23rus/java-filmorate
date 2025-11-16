@@ -71,7 +71,7 @@ public class FilmController {
     }
 	
     @GetMapping("/common")
-     public ResponseEntity<List<Film>> getCommonFilms(
+    public ResponseEntity<List<Film>> getCommonFilms(
         @RequestParam int userId,
         @RequestParam int friendId) {
 
