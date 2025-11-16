@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.DAO.GenreDbStorage;
 import ru.yandex.practicum.filmorate.storage.DAO.MpaDbStorage;
+import ru.yandex.practicum.filmorate.storage.event.EventStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
@@ -28,18 +29,21 @@ public class FilmService {
     private final GenreDbStorage genreDbStorage;
     private final DirectorService directorService;
     private static final LocalDate CINEMA_BIRTHDAY = LocalDate.of(1895, 12, 28);
+    private final EventStorage eventStorage;
 
     @Autowired
     public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage,
                        @Qualifier("userDbStorage") UserStorage userStorage,
                        MpaDbStorage mpaDbStorage,
                        GenreDbStorage genreDbStorage,
-                       DirectorService directorService) {
+                       DirectorService directorService,
+                       EventStorage eventStorage) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
         this.mpaDbStorage = mpaDbStorage;
         this.genreDbStorage = genreDbStorage;
         this.directorService = directorService;
+        this.eventStorage = eventStorage;
     }
 
     public Film addFilm(Film film) {
@@ -83,6 +87,8 @@ public class FilmService {
             throw new NotFoundException("Пользователь с id " + userId + " не найден.");
         }
         filmStorage.addLike(filmId, userId);
+        // Логируем событие добавления лайка
+        eventStorage.addEvent(userId, "LIKE", "ADD", filmId);
     }
 
     public void removeLike(int filmId, int userId) {
@@ -94,6 +100,8 @@ public class FilmService {
             throw new NotFoundException("Пользователь с id " + userId + " не найден.");
         }
         filmStorage.removeLike(filmId, userId);
+        // Логируем событие удаления лайка
+        eventStorage.addEvent(userId, "LIKE", "REMOVE", filmId);
     }
 
     public List<Film> getPopularFilms(int count, Integer genreId, Integer year) {
@@ -205,9 +213,10 @@ public class FilmService {
         }
         filmStorage.deleteFilm(id);
     }
-	 // по "Общим фильмам"
-	public List<Film> getCommonFilms(int userId, int friendId) {
-           return filmStorage.getCommonFilms(userId, friendId);
+
+    // по "Общим фильмам"
+    public List<Film> getCommonFilms(int userId, int friendId) {
+        return filmStorage.getCommonFilms(userId, friendId);
     }
 
 }

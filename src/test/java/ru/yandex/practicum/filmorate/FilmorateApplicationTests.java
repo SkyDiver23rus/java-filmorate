@@ -6,22 +6,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
-import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.DirectorService;
-import ru.yandex.practicum.filmorate.storage.DAO.DirectorDbStorage;
-import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
-import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
-import ru.yandex.practicum.filmorate.storage.DAO.GenreDbStorage;
-import ru.yandex.practicum.filmorate.storage.DAO.MpaDbStorage;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.DAO.DirectorDbStorage;
+import ru.yandex.practicum.filmorate.storage.DAO.GenreDbStorage;
+import ru.yandex.practicum.filmorate.storage.DAO.MpaDbStorage;
+import ru.yandex.practicum.filmorate.storage.event.EventDbStorage;
+import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
 
 import java.time.LocalDate;
-import java.util.Optional;
 import java.util.Collections;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -34,7 +35,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
         GenreDbStorage.class,
         MpaDbStorage.class,
         DirectorDbStorage.class,
-        DirectorService.class
+        DirectorService.class,
+        EventDbStorage.class  // Добавили EventDbStorage
 })
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class FilmorateApplicationTests {
@@ -53,6 +55,9 @@ public class FilmorateApplicationTests {
 
     @Autowired
     private DirectorService directorService;
+
+    @Autowired
+    private EventDbStorage eventStorage;  // Добавили EventDbStorage
 
     // UserDbStorage
     @Test
@@ -109,7 +114,15 @@ public class FilmorateApplicationTests {
     //  тесты для методов валидации
     @Test
     public void testValidateFilm_valid() {
-        FilmService filmService = new FilmService(filmStorage, userStorage, mpaStorage, genreStorage, directorService);
+        // Передаем eventStorage в конструктор FilmService
+        FilmService filmService = new FilmService(
+                filmStorage,
+                userStorage,
+                mpaStorage,
+                genreStorage,
+                directorService,
+                eventStorage  // Добавили eventStorage
+        );
 
         Film validFilm = new Film();
         validFilm.setName("Titanic");
@@ -127,7 +140,15 @@ public class FilmorateApplicationTests {
 
     @Test
     public void testValidateFilm_invalid() {
-        FilmService filmService = new FilmService(filmStorage, userStorage, mpaStorage, genreStorage, directorService);
+        // Передаем eventStorage в конструктор FilmService
+        FilmService filmService = new FilmService(
+                filmStorage,
+                userStorage,
+                mpaStorage,
+                genreStorage,
+                directorService,
+                eventStorage  // Добавили eventStorage
+        );
 
         Film invalidFilm = new Film();
         invalidFilm.setName(""); // Пустое имя
@@ -145,7 +166,8 @@ public class FilmorateApplicationTests {
 
     @Test
     public void testValidateUser_valid() {
-        UserService userService = new UserService(userStorage);
+        // Передаем eventStorage в конструктор UserService
+        UserService userService = new UserService(userStorage, eventStorage);
 
         User validUser = new User();
         validUser.setEmail("ok@mail.ru");
@@ -157,7 +179,8 @@ public class FilmorateApplicationTests {
 
     @Test
     public void testValidateUser_invalid() {
-        UserService userService = new UserService(userStorage);
+        // Передаем eventStorage в конструктор UserService
+        UserService userService = new UserService(userStorage, eventStorage);
 
         User invalidUser = new User();
         invalidUser.setEmail(""); // Некорректный email

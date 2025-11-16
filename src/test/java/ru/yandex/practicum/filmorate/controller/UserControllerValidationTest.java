@@ -3,13 +3,16 @@ package ru.yandex.practicum.filmorate.controller;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.event.EventStorage;
 import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -17,16 +20,33 @@ class UserControllerValidationTest {
 
     private UserController controller;
 
+    // Заглушка EventStorage
+    private final EventStorage dummyEventStorage = new EventStorage() {
+        @Override
+        public void addEvent(int userId, String eventType, String operation, int entityId) {
+        }
+
+        @Override
+        public List<Event> getUserFeed(int userId) {
+            return List.of();
+        }
+    };
+
     @BeforeEach
     void setUp() {
-        UserService userService = new UserService(new InMemoryUserStorage());
+        InMemoryUserStorage userStorage = new InMemoryUserStorage();
+        // Передаём userStorage + заглушку eventStorage
+        UserService userService = new UserService(userStorage, dummyEventStorage);
+
         FilmService filmService = new FilmService(
                 new InMemoryFilmStorage(),
-                new InMemoryUserStorage(),
+                userStorage,
                 null,
                 null,
-                null
+                null,
+                dummyEventStorage
         );
+
         controller = new UserController(userService, filmService);
     }
 
