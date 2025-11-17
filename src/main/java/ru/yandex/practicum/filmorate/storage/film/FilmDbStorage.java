@@ -383,7 +383,8 @@ public class FilmDbStorage implements FilmStorage {
                 queries.add("%" + query + "%");
             }
 
-            sql += "GROUP BY f.id, m.name";
+            sql += "GROUP BY f.id, m.name "
+                    + "ORDER BY likes_count DESC";
 
             List<Film> films = jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs), queries.toArray());
 
@@ -462,6 +463,7 @@ public class FilmDbStorage implements FilmStorage {
             for (Film film : films) {
                 film.setGenres(genresByFilmId.getOrDefault(film.getId(), new ArrayList<>()));
                 film.setLikes(new HashSet<>(likesByFilmId.getOrDefault(film.getId(), Collections.emptyList())));
+                film.setDirectors(loadDirectors(film.getId()));
             }
 
             return films;
@@ -495,17 +497,30 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public List<Film> getCommonFilms(int userId, int friendId) {
         String sql = """
-                SELECT f.*
+                SELECT f.id, f.name, f.description, f.release_date, f.duration, f.mpa_rating_id, m.name AS mpa_name, COUNT(fl1.user_id) AS cnt
                 FROM films f
                 JOIN film_likes fl1 ON f.id = fl1.film_id
                 JOIN film_likes fl2 ON f.id = fl2.film_id
+                LEFT JOIN mpa_ratings m ON f.mpa_rating_id = m.id
                 WHERE fl1.user_id = ? AND fl2.user_id = ?
-                GROUP BY f.id
-                ORDER BY COUNT(fl1.user_id) DESC;
+                GROUP BY f.id, f.name, f.description, f.release_date, f.duration, f.mpa_rating_id
+                ORDER BY cnt DESC;
                 """;
 
-        return Collections.singletonList(jdbcTemplate.query(sql, this::mapRowToFilm, userId, friendId));
+        List<Film> films = jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs), userId, friendId);
+
+        if (films.isEmpty()) return films;
+
+        Set<Integer> filmIds = films.stream().map(Film::getId).collect(Collectors.toSet());
+
+        Map<Integer, List<Genre>> genresByFilmId = getGenresForFilmIds(filmIds);
+        Map<Integer, List<Integer>> likesByFilmId = getLikesForFilmIds(filmIds);
+
+        for (Film film : films) {
+            film.setGenres(genresByFilmId.getOrDefault(film.getId(), new ArrayList<>()));
+            film.setLikes(new HashSet<>(likesByFilmId.getOrDefault(film.getId(), Collections.emptyList())));
+            film.setDirectors(loadDirectors(film.getId()));
+        }
+        return films;
     }
-
 }
-

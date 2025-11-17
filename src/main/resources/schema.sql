@@ -1,97 +1,109 @@
-CREATE TABLE IF NOT EXISTS mpa_ratings (
-                                           id INTEGER PRIMARY KEY,
-                                           name VARCHAR(50) NOT NULL UNIQUE
+CREATE TABLE IF NOT EXISTS mpa_ratings
+(
+    id   INTEGER PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE
 );
 
-CREATE TABLE IF NOT EXISTS genres (
-                                      id INTEGER PRIMARY KEY,
-                                      name VARCHAR(50) NOT NULL UNIQUE
+CREATE TABLE IF NOT EXISTS genres
+(
+    id   INTEGER PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE
 );
 
-CREATE TABLE IF NOT EXISTS directors (
-                                         id INTEGER AUTO_INCREMENT PRIMARY KEY,
-                                         name VARCHAR(255) NOT NULL UNIQUE
+CREATE TABLE IF NOT EXISTS directors
+(
+    id   INTEGER AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE
 );
 
-CREATE TABLE IF NOT EXISTS films (
-                                     id INTEGER AUTO_INCREMENT PRIMARY KEY,
-                                     name VARCHAR(255) NOT NULL,
-                                     description VARCHAR(200),
-                                     release_date DATE,
-                                     duration INTEGER,
-                                     mpa_rating_id INTEGER,
-                                     CONSTRAINT fk_films_mpa_rating FOREIGN KEY (mpa_rating_id) REFERENCES mpa_ratings(id)
+CREATE TABLE IF NOT EXISTS films
+(
+    id            INTEGER AUTO_INCREMENT PRIMARY KEY,
+    name          VARCHAR(255) NOT NULL,
+    description   VARCHAR(200),
+    release_date  DATE,
+    duration      INTEGER,
+    mpa_rating_id INTEGER,
+    CONSTRAINT fk_films_mpa_rating FOREIGN KEY (mpa_rating_id) REFERENCES mpa_ratings (id)
 );
 
-CREATE TABLE IF NOT EXISTS users (
-                                     id INTEGER AUTO_INCREMENT PRIMARY KEY,
-                                     email VARCHAR(255) NOT NULL UNIQUE,
-                                     login VARCHAR(255) NOT NULL UNIQUE,
-                                     name VARCHAR(255),
-                                     birthday DATE
+CREATE TABLE IF NOT EXISTS users
+(
+    id       INTEGER AUTO_INCREMENT PRIMARY KEY,
+    email    VARCHAR(255) NOT NULL UNIQUE,
+    login    VARCHAR(255) NOT NULL UNIQUE,
+    name     VARCHAR(255),
+    birthday DATE
 );
 
-CREATE TABLE IF NOT EXISTS film_genres (
-                                           film_id INTEGER,
-                                           genre_id INTEGER,
-                                           PRIMARY KEY (film_id, genre_id),
-                                           CONSTRAINT fk_film_genres_film FOREIGN KEY (film_id) REFERENCES films(id) ON DELETE CASCADE,
-                                           CONSTRAINT fk_film_genres_genre FOREIGN KEY (genre_id) REFERENCES genres(id) ON DELETE CASCADE
+CREATE TABLE IF NOT EXISTS film_genres
+(
+    film_id  INTEGER,
+    genre_id INTEGER,
+    PRIMARY KEY (film_id, genre_id),
+    CONSTRAINT fk_film_genres_film FOREIGN KEY (film_id) REFERENCES films (id) ON DELETE CASCADE,
+    CONSTRAINT fk_film_genres_genre FOREIGN KEY (genre_id) REFERENCES genres (id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS film_likes (
-                                          film_id INTEGER,
-                                          user_id INTEGER,
-                                          PRIMARY KEY (film_id, user_id),
-                                          CONSTRAINT fk_film_likes_film FOREIGN KEY (film_id) REFERENCES films(id) ON DELETE CASCADE,
-                                          CONSTRAINT fk_film_likes_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+CREATE TABLE IF NOT EXISTS film_likes
+(
+    film_id INTEGER,
+    user_id INTEGER,
+    PRIMARY KEY (film_id, user_id),
+    CONSTRAINT fk_film_likes_film FOREIGN KEY (film_id) REFERENCES films (id) ON DELETE CASCADE,
+    CONSTRAINT fk_film_likes_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS film_directors (
-                                              film_id INTEGER NOT NULL,
-                                              director_id INTEGER NOT NULL,
-                                              PRIMARY KEY (film_id, director_id),
-                                              CONSTRAINT fk_film_directors_film
-                                                  FOREIGN KEY (film_id) REFERENCES films(id) ON DELETE CASCADE,
-                                              CONSTRAINT fk_film_directors_director
-                                                  FOREIGN KEY (director_id) REFERENCES directors(id) ON DELETE CASCADE
+CREATE TABLE IF NOT EXISTS film_directors
+(
+    film_id     INTEGER NOT NULL,
+    director_id INTEGER NOT NULL,
+    PRIMARY KEY (film_id, director_id),
+    CONSTRAINT fk_film_directors_film
+        FOREIGN KEY (film_id) REFERENCES films (id) ON DELETE CASCADE,
+    CONSTRAINT fk_film_directors_director
+        FOREIGN KEY (director_id) REFERENCES directors (id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS friendships (
-                                           user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                                           friend_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                                           PRIMARY KEY (user_id, friend_id)
+CREATE TABLE IF NOT EXISTS friendships
+(
+    user_id   INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    friend_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    PRIMARY KEY (user_id, friend_id)
 );
-CREATE TABLE IF NOT EXISTS reviews (
-    review_id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    content VARCHAR(500) NOT NULL,
-    is_positive BOOLEAN NOT NULL,
-    user_id BIGINT NOT NULL,
-    film_id BIGINT NOT NULL,
-    useful INT DEFAULT 0,
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (film_id) REFERENCES films(id)
+CREATE TABLE IF NOT EXISTS reviews
+(
+    review_id   BIGINT PRIMARY KEY AUTO_INCREMENT,
+    content     VARCHAR(500) NOT NULL,
+    is_positive BOOLEAN      NOT NULL,
+    user_id     BIGINT       NOT NULL,
+    film_id     BIGINT       NOT NULL,
+    useful      INT DEFAULT 0,
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    FOREIGN KEY (film_id) REFERENCES films (id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS review_likes (
-    review_id BIGINT NOT NULL,
-    user_id BIGINT NOT NULL,
-    is_like BOOLEAN NOT NULL,
+CREATE TABLE IF NOT EXISTS review_likes
+(
+    review_id BIGINT  NOT NULL,
+    user_id   BIGINT  NOT NULL,
+    is_like   BOOLEAN NOT NULL,
     PRIMARY KEY (review_id, user_id),
-    FOREIGN KEY (review_id) REFERENCES reviews(review_id),
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    FOREIGN KEY (review_id) REFERENCES reviews (review_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS events (
-    event_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
+CREATE TABLE IF NOT EXISTS events
+(
+    event_id   BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id    INT         NOT NULL,
     event_type VARCHAR(20) NOT NULL, -- LIKE, REVIEW, FRIEND
-    operation VARCHAR(20) NOT NULL,  -- REMOVE, ADD, UPDATE
-    entity_id INT NOT NULL,          -- id фильма, отзыва или друга
-    timestamp BIGINT NOT NULL,       -- время в миллисекундах
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    operation  VARCHAR(20) NOT NULL, -- REMOVE, ADD, UPDATE
+    entity_id  INT         NOT NULL, -- id фильма, отзыва или друга
+    timestamp  BIGINT      NOT NULL, -- время в миллисекундах
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
 -- Индексы для быстрого поиска событий пользователя
-CREATE INDEX IF NOT EXISTS idx_events_user_id ON events(user_id);
-CREATE INDEX IF NOT EXISTS idx_events_timestamp ON events(timestamp);
+CREATE INDEX IF NOT EXISTS idx_events_user_id ON events (user_id);
+CREATE INDEX IF NOT EXISTS idx_events_timestamp ON events (timestamp);
