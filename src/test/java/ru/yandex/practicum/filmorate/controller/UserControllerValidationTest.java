@@ -4,6 +4,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Event;
+import ru.yandex.practicum.filmorate.model.EventType;
+import ru.yandex.practicum.filmorate.model.Operation;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
@@ -23,7 +25,7 @@ class UserControllerValidationTest {
     // Заглушка EventStorage
     private final EventStorage dummyEventStorage = new EventStorage() {
         @Override
-        public void addEvent(int userId, String eventType, String operation, int entityId) {
+        public void addEvent(int userId, EventType eventType, Operation operation, int entityId) {
         }
 
         @Override

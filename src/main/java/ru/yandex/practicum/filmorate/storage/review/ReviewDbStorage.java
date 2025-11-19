@@ -24,11 +24,11 @@ public class ReviewDbStorage implements ReviewStorage {
 
     private Review mapRow(ResultSet rs, int rowNum) throws SQLException {
         Review r = new Review();
-        r.setReviewId(rs.getLong("review_id"));
+        r.setReviewId(rs.getInt("review_id"));
         r.setContent(rs.getString("content"));
         r.setIsPositive(rs.getBoolean("is_positive"));
-        r.setUserId(rs.getLong("user_id"));
-        r.setFilmId(rs.getLong("film_id"));
+        r.setUserId(rs.getInt("user_id"));
+        r.setFilmId(rs.getInt("film_id"));
         r.setUseful(rs.getInt("useful"));
         return r;
     }

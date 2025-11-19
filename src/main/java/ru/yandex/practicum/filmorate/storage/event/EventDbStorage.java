@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Event;
+import ru.yandex.practicum.filmorate.model.EventType;
+import ru.yandex.practicum.filmorate.model.Operation;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -16,11 +18,16 @@ public class EventDbStorage implements EventStorage {
     private final JdbcTemplate jdbcTemplate;
 
     @Override
-    public void addEvent(int userId, String eventType, String operation, int entityId) {
+    public void addEvent(int userId, EventType eventType, Operation operation, int entityId) {
         String sql = "INSERT INTO events (user_id, event_type, operation, entity_id, timestamp) " +
                 "VALUES (?, ?, ?, ?, ?)";
         long timestamp = System.currentTimeMillis();
-        jdbcTemplate.update(sql, userId, eventType, operation, entityId, timestamp);
+        jdbcTemplate.update(sql,
+                userId,
+                eventType.name(),
+                operation.name(),
+                entityId,
+                timestamp);
     }
 
     @Override
@@ -35,8 +42,8 @@ public class EventDbStorage implements EventStorage {
         event.setEventId(rs.getLong("event_id"));
         event.setTimestamp(rs.getLong("timestamp"));
         event.setUserId(rs.getInt("user_id"));
-        event.setEventType(rs.getString("event_type"));
-        event.setOperation(rs.getString("operation"));
+        event.setEventType(EventType.valueOf(rs.getString("event_type")));
+        event.setOperation(Operation.valueOf(rs.getString("operation")));
         event.setEntityId(rs.getInt("entity_id"));
         return event;
     }

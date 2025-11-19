@@ -11,7 +11,7 @@ public class Event {
     private Long eventId;
     private Long timestamp;
     private Integer userId;
-    private String eventType; // LIKE, REVIEW, FRIEND
-    private String operation; // REMOVE, ADD, UPDATE
+    private EventType eventType; // LIKE, REVIEW, FRIEND
+    private Operation operation; // REMOVE, ADD, UPDATE
     private Integer entityId;
 }

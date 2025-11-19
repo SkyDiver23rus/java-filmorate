@@ -87,5 +87,4 @@ public class UserController {
     public ResponseEntity<List<Event>> getUserFeed(@PathVariable int id) {
         return ResponseEntity.ok(userService.getUserFeed(id));
     }
-
 }

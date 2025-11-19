@@ -6,9 +6,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.storage.DAO.GenreDbStorage;
 import ru.yandex.practicum.filmorate.storage.DAO.MpaDbStorage;
 import ru.yandex.practicum.filmorate.storage.event.EventStorage;
@@ -88,7 +86,7 @@ public class FilmService {
         }
         filmStorage.addLike(filmId, userId);
         // Логируем событие добавления лайка
-        eventStorage.addEvent(userId, "LIKE", "ADD", filmId);
+        eventStorage.addEvent(userId, EventType.LIKE, Operation.ADD, filmId);
     }
 
     public void removeLike(int filmId, int userId) {
@@ -101,7 +99,7 @@ public class FilmService {
         }
         filmStorage.removeLike(filmId, userId);
         // Логируем событие удаления лайка
-        eventStorage.addEvent(userId, "LIKE", "REMOVE", filmId);
+        eventStorage.addEvent(userId, EventType.LIKE, Operation.REMOVE, filmId);
     }
 
     public List<Film> getPopularFilms(int count, Integer genreId, Integer year) {
@@ -111,8 +109,8 @@ public class FilmService {
         if (genreId != null) {
             validateGenre(genreId);
         }
-        if (year != null && year <= 0) {
-            throw new ValidationException("Год должен быть положительным числом");
+        if (year != null && year < CINEMA_BIRTHDAY.getYear()) {
+            throw new ValidationException("Год не может быть меньше 1895");
         }
         return filmStorage.getPopularFilms(count, genreId, year);
     }
@@ -121,7 +119,7 @@ public class FilmService {
         if (!"likes".equalsIgnoreCase(sortBy) && !"year".equalsIgnoreCase(sortBy)) {
             throw new ValidationException("Параметр sortBy должен быть 'likes' или 'year'.");
         }
-        directorService.ensureExists(directorId);
+        directorService.checkExists(directorId);
 
         return ((FilmDbStorage) filmStorage).getFilmsByDirectorSorted(directorId, sortBy);
     }
@@ -191,17 +189,14 @@ public class FilmService {
 
     //По задаче рекомендации
     public List<Film> getRecommendedFilms(int userId) {
-        // Если пользователя нет — просто возвращаем пустой список
         if (userStorage.getUserById(userId) == null) {
-            return List.of();
+            throw new NotFoundException("Пользователь с id " + userId + " не найден.");
         }
         try {
             return filmStorage.getRecommendedFilms(userId);
         } catch (Exception e) {
-            // Возвращаем пустой список при любой ошибке
-            System.err.println("Error in getRecommendedFilms: " + e.getMessage());
-            e.printStackTrace();
-            return List.of();
+            log.error("Ошибка при получении рекомендаций для пользователя с id {}: {}", userId, e.getMessage(), e);
+            throw new RuntimeException("Ошбка при получении рекомендаций", e);
         }
     }
 
@@ -218,5 +213,4 @@ public class FilmService {
     public List<Film> getCommonFilms(int userId, int friendId) {
         return filmStorage.getCommonFilms(userId, friendId);
     }
-
 }
