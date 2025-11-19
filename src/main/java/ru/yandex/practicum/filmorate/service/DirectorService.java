@@ -21,7 +21,7 @@ public class DirectorService {
 
     public Director update(Director director) {
         validateName(director.getName());
-        ensureExists(director.getId());
+        checkExists(director.getId());
         return directorDbStorage.update(director);
     }
 
@@ -35,7 +35,7 @@ public class DirectorService {
     }
 
     public void delete(int id) {
-        ensureExists(id);
+        checkExists(id);
         directorDbStorage.delete(id);
     }
 
@@ -46,7 +46,7 @@ public class DirectorService {
     }
 
     // проверка существования режиссера по id
-    public void ensureExists(int id) {
+    public void checkExists(int id) {
         if (!directorDbStorage.existsById(id)) {
             throw new NotFoundException("Режиссёр с id " + id + " не найден.");
         }

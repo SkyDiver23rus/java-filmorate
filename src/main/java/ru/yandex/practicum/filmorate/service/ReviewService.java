@@ -2,6 +2,8 @@ package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.model.EventType;
+import ru.yandex.practicum.filmorate.model.Operation;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.storage.event.EventStorage;
 import ru.yandex.practicum.filmorate.storage.review.ReviewStorage;
@@ -23,16 +25,16 @@ public class ReviewService {
     public Review addReview(Review review) {
         Review created = reviewStorage.addReview(review);
         // Логируем событие добавления отзыва
-        eventStorage.addEvent(review.getUserId().intValue(), "REVIEW", "ADD",
-                created.getReviewId().intValue());
+        eventStorage.addEvent(review.getUserId(), EventType.REVIEW, Operation.ADD,
+                created.getReviewId());
         return created;
     }
 
     public Review updateReview(Review review) {
         Review updated = reviewStorage.updateReview(review);
         // Логируем событие обновления отзыва
-        eventStorage.addEvent(updated.getUserId().intValue(), "REVIEW", "UPDATE",
-                updated.getReviewId().intValue());
+        eventStorage.addEvent(updated.getUserId(), EventType.REVIEW, Operation.UPDATE,
+                updated.getReviewId());
         return updated;
     }
 
@@ -40,8 +42,8 @@ public class ReviewService {
         Review review = reviewStorage.getReviewById(id);
         reviewStorage.deleteReview(id);
         // Логируем событие удаления отзыва
-        eventStorage.addEvent(review.getUserId().intValue(), "REVIEW", "REMOVE",
-                review.getReviewId().intValue());
+        eventStorage.addEvent(review.getUserId(), EventType.REVIEW, Operation.REMOVE,
+                review.getReviewId());
     }
 
     public Review getReviewById(long id) {

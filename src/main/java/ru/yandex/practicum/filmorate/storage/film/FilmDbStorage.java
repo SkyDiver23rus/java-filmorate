@@ -105,7 +105,7 @@ public class FilmDbStorage implements FilmStorage {
                 Film film = mapRowToFilm(rs);
                 film.setGenres(getGenresForFilmIds(Set.of(film.getId())).getOrDefault(film.getId(), new ArrayList<>()));
                 film.setLikes(new HashSet<>(getLikesForFilmIds(Set.of(film.getId())).getOrDefault(film.getId(), Collections.emptyList())));
-                film.setDirectors(loadDirectors(film.getId()));
+                film.setDirectors(loadDirectorsById(film.getId()));
                 return film;
             }, id);
             return films.isEmpty() ? null : films.get(0);
@@ -134,11 +134,13 @@ public class FilmDbStorage implements FilmStorage {
 
             Map<Integer, List<Genre>> genresByFilmId = getGenresForFilmIds(filmIds);
             Map<Integer, List<Integer>> likesByFilmId = getLikesForFilmIds(filmIds);
+            Map<Integer, LinkedHashSet<Director>> directorsByFilmId = loadDirectors(filmIds);
+
 
             for (Film film : films) {
                 film.setGenres(genresByFilmId.getOrDefault(film.getId(), new ArrayList<>()));
                 film.setLikes(new HashSet<>(likesByFilmId.getOrDefault(film.getId(), Collections.emptyList())));
-                film.setDirectors(loadDirectors(film.getId()));
+                film.setDirectors(directorsByFilmId.getOrDefault(film.getId(), new LinkedHashSet<>()));
             }
             return films;
         } catch (DataAccessException e) {
@@ -169,10 +171,9 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public List<Film> getPopularFilms(int count, Integer genreId, Integer year) {
         try {
-            String sql = "SELECT f.id, f.name, f.description, f.release_date, f.duration, f.mpa_rating_id, m.name as mpa_name, ";
             List<Integer> parameters = new ArrayList<>();
 
-            sql = "SELECT f.*, m.name as mpa_name, "
+             String sql = "SELECT f.*, m.name as mpa_name, "
                     + "COUNT(fl.user_id) as likes_count "
                     + "FROM films f "
                     + "LEFT JOIN mpa_ratings m ON f.mpa_rating_id = m.id "
@@ -207,11 +208,12 @@ public class FilmDbStorage implements FilmStorage {
 
             Map<Integer, List<Genre>> genresByFilmId = getGenresForFilmIds(filmIds);
             Map<Integer, List<Integer>> likesByFilmId = getLikesForFilmIds(filmIds);
+            Map<Integer, LinkedHashSet<Director>> directorsByFilmId = loadDirectors(filmIds);
 
             for (Film film : films) {
                 film.setGenres(genresByFilmId.getOrDefault(film.getId(), new ArrayList<>()));
                 film.setLikes(new HashSet<>(likesByFilmId.getOrDefault(film.getId(), Collections.emptyList())));
-                film.setDirectors(loadDirectors(film.getId()));
+                film.setDirectors(directorsByFilmId.getOrDefault(film.getId(), new LinkedHashSet<>()));
             }
             return films;
         } catch (DataAccessException e) {
@@ -320,11 +322,12 @@ public class FilmDbStorage implements FilmStorage {
 
         Map<Integer, List<Genre>> genresByFilmId = getGenresForFilmIds(filmIds);
         Map<Integer, List<Integer>> likesByFilmId = getLikesForFilmIds(filmIds);
+        Map<Integer, LinkedHashSet<Director>> directorsByFilmId = loadDirectors(filmIds);
 
         for (Film film : films) {
             film.setGenres(genresByFilmId.getOrDefault(film.getId(), new ArrayList<>()));
             film.setLikes(new HashSet<>(likesByFilmId.getOrDefault(film.getId(), Collections.emptyList())));
-            film.setDirectors(loadDirectors(film.getId()));
+            film.setDirectors(directorsByFilmId.getOrDefault(film.getId(), new LinkedHashSet<>()));
         }
         return films;
     }
@@ -340,19 +343,39 @@ public class FilmDbStorage implements FilmStorage {
         }
     }
 
-    private Set<Director> loadDirectors(int filmId) {
-        String sql = "SELECT d.id, d.name " +
+    private Map<Integer, LinkedHashSet<Director>> loadDirectors(Set<Integer> filmIds) {
+        if (filmIds == null || filmIds.isEmpty()) {
+            return new HashMap<>();
+        }
+
+        String inSql = filmIds.stream()
+                .map(id -> "?")
+                .collect(Collectors.joining(","));
+
+        String sql = "SELECT fd.film_id AS film_id, d.id AS director_id, d.name AS director_name " +
                 "FROM film_directors fd " +
                 "JOIN directors d ON d.id = fd.director_id " +
-                "WHERE fd.film_id = ? " +
-                "ORDER BY d.name";
-        return new LinkedHashSet<>(jdbcTemplate.query(sql, (rs, rn) -> {
+                "WHERE fd.film_id IN (" + inSql + ") " +
+                "ORDER BY fd.film_id, d.name";
+
+        Map<Integer, LinkedHashSet<Director>> result = new HashMap<>();
+
+        jdbcTemplate.query(sql, filmIds.toArray(), rs -> {
+            int filmId = rs.getInt("film_id");
             Director director = new Director();
-            director.setId(rs.getInt("id"));
-            director.setName(rs.getString("name"));
-            return director;
-        }, filmId));
+            director.setId(rs.getInt("director_id"));
+            director.setName(rs.getString("director_name"));
+            result.computeIfAbsent(filmId, k -> new LinkedHashSet<>()).add(director);
+        });
+
+        return result;
     }
+
+    private Set<Director> loadDirectorsById(int filmId) {
+        Map<Integer, LinkedHashSet<Director>> map = loadDirectors(Set.of(filmId));
+        return map.getOrDefault(filmId, new LinkedHashSet<>());
+    }
+
 
     //поиск фильмов по имени режиссёра/названию фильма
     @Override
@@ -394,11 +417,12 @@ public class FilmDbStorage implements FilmStorage {
 
             Map<Integer, List<Genre>> genresByFilmId = getGenresForFilmIds(filmIds);
             Map<Integer, List<Integer>> likesByFilmId = getLikesForFilmIds(filmIds);
+            Map<Integer, LinkedHashSet<Director>> directorsByFilmId = loadDirectors(filmIds);
 
             for (Film film : films) {
                 film.setGenres(genresByFilmId.getOrDefault(film.getId(), new ArrayList<>()));
                 film.setLikes(new HashSet<>(likesByFilmId.getOrDefault(film.getId(), Collections.emptyList())));
-                film.setDirectors(loadDirectors(film.getId()));
+                film.setDirectors(directorsByFilmId.getOrDefault(film.getId(), new LinkedHashSet<>()));
             }
             return films;
         } catch (DataAccessException e) {
@@ -459,11 +483,12 @@ public class FilmDbStorage implements FilmStorage {
             Set<Integer> filmIds = films.stream().map(Film::getId).collect(Collectors.toSet());
             Map<Integer, List<Genre>> genresByFilmId = getGenresForFilmIds(filmIds);
             Map<Integer, List<Integer>> likesByFilmId = getLikesForFilmIds(filmIds);
+            Map<Integer, LinkedHashSet<Director>> directorsByFilmId = loadDirectors(filmIds);
 
             for (Film film : films) {
                 film.setGenres(genresByFilmId.getOrDefault(film.getId(), new ArrayList<>()));
                 film.setLikes(new HashSet<>(likesByFilmId.getOrDefault(film.getId(), Collections.emptyList())));
-                film.setDirectors(loadDirectors(film.getId()));
+                film.setDirectors(directorsByFilmId.getOrDefault(film.getId(), new LinkedHashSet<>()));
             }
 
             return films;
@@ -519,7 +544,7 @@ public class FilmDbStorage implements FilmStorage {
         for (Film film : films) {
             film.setGenres(genresByFilmId.getOrDefault(film.getId(), new ArrayList<>()));
             film.setLikes(new HashSet<>(likesByFilmId.getOrDefault(film.getId(), Collections.emptyList())));
-            film.setDirectors(loadDirectors(film.getId()));
+            film.setDirectors(loadDirectorsById(film.getId()));
         }
         return films;
     }

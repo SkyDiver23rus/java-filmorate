@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Event;
+import ru.yandex.practicum.filmorate.model.EventType;
+import ru.yandex.practicum.filmorate.model.Operation;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.event.EventStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
@@ -53,7 +55,7 @@ public class UserService {
         validateUserExists(friendId);
         userStorage.addFriend(id, friendId);
         // Логируем событие добавления друга
-        eventStorage.addEvent(id, "FRIEND", "ADD", friendId);
+        eventStorage.addEvent(id, EventType.FRIEND, Operation.ADD, friendId);
     }
 
     public void removeFriend(int id, int friendId) {
@@ -61,7 +63,7 @@ public class UserService {
         validateUserExists(friendId);
         userStorage.removeFriend(id, friendId);
         // Логируем событие удаления друга
-        eventStorage.addEvent(id, "FRIEND", "REMOVE", friendId);
+        eventStorage.addEvent(id, EventType.FRIEND, Operation.REMOVE, friendId);
     }
 
     public List<User> getFriends(int id) {
