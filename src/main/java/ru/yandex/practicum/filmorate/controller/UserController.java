@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
@@ -79,5 +80,11 @@ public class UserController {
     public ResponseEntity<Void> deleteUser(@PathVariable int id) {
         userService.deleteUser(id);
         return ResponseEntity.ok().build();
+    }
+
+    // Новый эндпоинт для ленты событий
+    @GetMapping("/{id}/feed")
+    public ResponseEntity<List<Event>> getUserFeed(@PathVariable int id) {
+        return ResponseEntity.ok(userService.getUserFeed(id));
     }
 }

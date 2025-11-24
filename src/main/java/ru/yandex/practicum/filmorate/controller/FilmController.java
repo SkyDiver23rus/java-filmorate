@@ -54,8 +54,10 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public ResponseEntity<List<Film>> getPopularFilms(@RequestParam(defaultValue = "10") int count) {
-        return ResponseEntity.ok(filmService.getPopularFilms(count));
+    public ResponseEntity<List<Film>> getPopularFilms(@RequestParam(defaultValue = "10") int count,
+                                                      @RequestParam(required = false) Integer genreId,
+                                                      @RequestParam(required = false) Integer year) {
+        return ResponseEntity.ok(filmService.getPopularFilms(count, genreId, year));
     }
 
     //метод по задаче удаление
@@ -65,4 +67,22 @@ public class FilmController {
         return ResponseEntity.ok().build();
     }
 
+    // получение всех фильмов режиссера
+    @GetMapping("/director/{directorId}")
+    public ResponseEntity<List<Film>> filmByDirector(@PathVariable int directorId, @RequestParam String sortBy) {
+        return ResponseEntity.ok(filmService.getFilmsByDirectorSorted(directorId, sortBy));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<Film>> getFilmsByFilter(@RequestParam(required = false) String query, @RequestParam(required = false) List<String> by) {
+        return ResponseEntity.ok(filmService.getFilmsByFilter(query, by));
+    }
+
+    @GetMapping("/common")
+    public ResponseEntity<List<Film>> getCommonFilms(
+            @RequestParam int userId,
+            @RequestParam int friendId) {
+
+        return ResponseEntity.ok(filmService.getCommonFilms(userId, friendId));
+    }
 }
